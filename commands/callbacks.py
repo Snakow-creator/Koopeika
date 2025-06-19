@@ -29,7 +29,7 @@ async def clbk_add_transaction(callback: CallbackQuery, state: FSMContext):
     try:
         value = oc.data_value.get(callback.from_user.id, 0)
         assets = oc.user_choise.get(callback.from_user.id, 0)
-        await rq.Balance.change(value, callback.from_user.id, assets, description="")
+        await rq.Transactions.add(value, callback.from_user.id, assets, description="")
         await callback.message.edit_text("Функция произведена успешно.")
     except ManyTransactionsError as ex:
         await callback.message.edit_text(str(ex))
@@ -89,20 +89,27 @@ async def clbk_values(callback: CallbackQuery, state: FSMContext):
 
     value, answer_, text = await check_list_values(action)
     oc.data_value[callback.from_user.id] = value
-    await state.set_state(h.Balance.change if choise == "change" else h.Balance.deprive)
     await callback.answer(answer_)
 
     if choise == "change":
-        await callback.message.edit_text(text + "\nУкажите ваши накопления в сообщения(дробные числа указываются точкой):")
+        await state.set_state(h.Balance.change)
+        await callback.message.edit_text(
+            text + "\nУкажите ваши накопления в сообщения(дробные числа указываются точкой):"
+        )
+
     elif choise == "deprive":
-        await callback.message.edit_text(text + "\nУкажите ваши траты в сообщения(дробные числа указываются точкой):")
+        await state.set_state(h.Balance.deprive)
+        await callback.message.edit_text(
+            text + "\nУкажите ваши траты в сообщения(дробные числа указываются точкой):"
+        )
+        
     elif choise == "edit":
         text = await os.clbk_value_edit(action, callback.from_user.id)
         await callback.message.edit_text(text)
 
 
 @router.callback_query(F.data.startswith("clbk_otherlist_"))
-async def check_fulllist(callback: CallbackQuery, state: FSMContext):
+async def check_fulllist(callback: CallbackQuery):
     await callback.answer("")
 
     action = callback.data.split("_")[-1]

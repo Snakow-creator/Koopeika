@@ -17,7 +17,7 @@ class User(Base):
     # добавляем поля для ввода в базу данных
     id: Mapped[int] = mapped_column(primary_key=True)
     tg_id = mapped_column(BigInteger, unique=True)
-    full_balance = mapped_column(BigInteger)
+    full_balance = mapped_column(BigInteger, nullable=False)
     time_zone: Mapped[str] = mapped_column(String(4))
     value: Mapped[str] = mapped_column(String(7))
     style: Mapped[str] = mapped_column(String(10))

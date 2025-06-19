@@ -12,15 +12,28 @@ from database.errors_config import ManyTransactionsError
 class Balance:
 
     @staticmethod
-    async def edit(tg_id, amount):
+    async def edit(tg_id, amount) -> None:
         async with async_session() as session:
             stmt = await session.scalar(select(User).where(User.tg_id == tg_id))
             stmt.full_balance = amount
 
             await session.commit()
 
+
+
+# класс операций связанных с транзакциями
+class Transactions:
+
+    # отправление запроса для получения транзакций юзера
     @staticmethod
-    async def change(value: str, tg_id: int, assets: str, description: str):
+    async def history_transactions(tg_id: int):
+        async with async_session() as session:
+            return await session.scalars(
+                select(Transaction).where(Transaction.user_id == tg_id).order_by(desc(Transaction.id))
+            )
+
+    @staticmethod
+    async def add(value: str, tg_id: int, assets: str, description: str):
         async with async_session() as session:
             assert len(description) <= 30
             transactions = await Transactions.history_transactions(tg_id)
@@ -41,49 +54,23 @@ class Balance:
             )
             await session.commit()
 
-
-# класс операций связанных с транзакциями
-class Transactions:
-
-    # отправление запроса для получения транзакций юзера
-    @staticmethod
-    async def history_transactions(tg_id: int):
-        async with async_session() as session:
-            return await session.scalars(
-                select(Transaction).where(Transaction.user_id == tg_id).order_by(desc(Transaction.id))
-            )
-
     @staticmethod
     async def edit(value: float, tg_id: int, num_id: int):
         async with async_session() as session:
-            stmt = await session.scalar(select(User).where(User.tg_id == tg_id))
             transaction = await session.scalar(select(Transaction).where(Transaction.id == num_id))
+            op = transaction.amount[0]
+            transaction.amount = op + f"{str(value)}"
             await checker_id(tg_id, num_id)
-            user_balance = stmt.full_balance
-            tr_balance = float(transaction.amount[1:])
-            checker = transaction.amount[0]
-            if checker == "+":
-                stmt.full_balance = user_balance - tr_balance + value
-                transaction.amount = f"+{str(value)}"
-            elif checker == "-":
-                stmt.full_balance = user_balance + tr_balance - value
-                transaction.amount = f"-{str(value)}"
+
             await session.commit()
 
     @staticmethod
     async def delete(tg_id: int, num_id: int):
         async with async_session() as session:
-            stmt = await session.scalar(select(User).where(User.tg_id == tg_id))
             transaction = await session.scalar(select(Transaction).where(Transaction.id == num_id))
             await checker_id(tg_id, num_id)
-            user_balance = stmt.full_balance
-            tr_balance = float(transaction.amount[1:])
-            checker = transaction.amount[0]
-            if checker == "+":
-                stmt.full_balance = user_balance - tr_balance
-            elif checker == "-":
-                stmt.full_balance = user_balance + tr_balance
             await session.delete(transaction)
+
             await session.commit()
 
 

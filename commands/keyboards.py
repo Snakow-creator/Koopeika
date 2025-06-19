@@ -274,24 +274,24 @@ class clbk:
     def classic_values() -> InlineKeyboardMarkup:
         buttons = [
             [
-                InlineKeyboardButton(text="🇺🇸USD", callback_data="con_value_pop_USD"),
-                InlineKeyboardButton(text="🇪🇺EUR", callback_data="con_value_pop_EUR"),
-                InlineKeyboardButton(text="🇷🇺RUB", callback_data="con_value_pop_RUB"),
-                InlineKeyboardButton(text="🇦🇪AED", callback_data="con_value_pop_AED"),
+                InlineKeyboardButton(text="🇺🇸USD", callback_data="add_value_pop_USD"),
+                InlineKeyboardButton(text="🇪🇺EUR", callback_data="add_value_pop_EUR"),
+                InlineKeyboardButton(text="🇷🇺RUB", callback_data="add_value_pop_RUB"),
+                InlineKeyboardButton(text="🇦🇪AED", callback_data="add_value_pop_AED"),
             ],
             [
-                InlineKeyboardButton(text="🇧🇾BYN", callback_data="con_value_pop_BYN"),
-                InlineKeyboardButton(text="🇺🇦UAH", callback_data="con_value_pop_UAH"),
-                InlineKeyboardButton(text="🇰🇿KZT", callback_data="con_value_pop_KZT"),
-                InlineKeyboardButton(text="🇬🇪GEL", callback_data="con_value_pop_GEL"),
+                InlineKeyboardButton(text="🇧🇾BYN", callback_data="add_value_pop_BYN"),
+                InlineKeyboardButton(text="🇺🇦UAH", callback_data="add_value_pop_UAH"),
+                InlineKeyboardButton(text="🇰🇿KZT", callback_data="add_value_pop_KZT"),
+                InlineKeyboardButton(text="🇬🇪GEL", callback_data="add_value_pop_GEL"),
             ],
             [
-                InlineKeyboardButton(text="🇨🇳CNY", callback_data="con_value_pop_CNY"),
-                InlineKeyboardButton(text="🇯🇵JPY", callback_data="con_value_pop_JPY"),
-                InlineKeyboardButton(text="🇹🇷TRY", callback_data="con_value_pop_TRY"),
-                InlineKeyboardButton(text="🇬🇧GBP", callback_data="con_value_pop_GBP"),
+                InlineKeyboardButton(text="🇨🇳CNY", callback_data="add_value_pop_CNY"),
+                InlineKeyboardButton(text="🇯🇵JPY", callback_data="add_value_pop_JPY"),
+                InlineKeyboardButton(text="🇹🇷TRY", callback_data="add_value_pop_TRY"),
+                InlineKeyboardButton(text="🇬🇧GBP", callback_data="add_value_pop_GBP"),
             ],
-            [InlineKeyboardButton(text="Остальные валюты", callback_data="clbk_otherlist_value_con")],
+            [InlineKeyboardButton(text="Остальные валюты", callback_data="clbk_otherlist_value_add")],
         ]
         return InlineKeyboardMarkup(inline_keyboard=buttons)
 

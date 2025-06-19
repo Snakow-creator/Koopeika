@@ -152,7 +152,7 @@ async def add_assets_end(message: Message, state: FSMContext):
         value = oc.data_value.get(message.from_user.id, 0)
         assets = oc.user_choise.get(message.from_user.id, 0)
         description = str(message.text)
-        await rq.Balance.change(value, message.from_user.id, assets, description)
+        await rq.Transactions.add(value, message.from_user.id, assets, description)
         await message.answer("Функция произведена успешно✅")
     except ManyTransactionsError as ex:
         await message.answer(f"{ex}")
@@ -197,7 +197,7 @@ async def delete_assets_end(message: Message, state: FSMContext):
         value = oc.data_value.get(message.from_user.id, 0)
         assets = oc.user_choise.get(message.from_user.id, 0)
         description = str(message.text)
-        await rq.Balance.change(value, message.from_user.id, assets, description)
+        await rq.Transactions.add(value, message.from_user.id, assets, description)
         await message.answer("Функция произведена успешно✅")
     except AssertionError:
         await message.answer("Ошибка, вы ввели слишком много символов")

@@ -19,7 +19,7 @@ class ManyTransactionsError(Exception):
         super().__init__(message)
 
 
-class BigNumError(ValueError):
+class BigNumError(Exception):
     def __init__(self):
         message = "Вы ввели слишком много активов, введите число поменьше."
         super().__init__(message)

@@ -1,4 +1,4 @@
-from sqlalchemy import BigInteger, DateTime, ForeignKey, String
+from sqlalchemy import BigInteger, DateTime, ForeignKey, String, Integer
 from sqlalchemy.ext.asyncio import AsyncAttrs, async_sessionmaker, create_async_engine
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
@@ -16,12 +16,14 @@ class User(Base):
     __tablename__ = "users"
     # добавляем поля для ввода в базу данных
     id: Mapped[int] = mapped_column(primary_key=True)
-    tg_id = mapped_column(BigInteger, unique=True)
+    tg_id: Mapped[str] = mapped_column(String(20), unique=True)
     full_balance = mapped_column(BigInteger, nullable=False)
     time_zone: Mapped[str] = mapped_column(String(4))
     value: Mapped[str] = mapped_column(String(7))
     style: Mapped[str] = mapped_column(String(10))
     transactions = relationship("Transaction", back_populates="user")
+    fiat_amount: Mapped[int] = mapped_column(Integer, default=2, nullable=False)
+    crypto_amount: Mapped[int] = mapped_column(Integer, default=8, nullable=False)
 
 
 # страница транзакций
@@ -29,7 +31,7 @@ class Transaction(Base):
     __tablename__ = "transactions"
     # добавляем поля для ввода в базу данных
     id: Mapped[int] = mapped_column(primary_key=True)
-    user_id: Mapped[int] = mapped_column(ForeignKey("users.tg_id"))
+    user_id: Mapped[str] = mapped_column(ForeignKey("users.tg_id"))
     value: Mapped[str] = mapped_column(String(7))
     amount: Mapped[str] = mapped_column(String(34))
     time: Mapped[str] = mapped_column(String(16))

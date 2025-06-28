@@ -30,47 +30,39 @@ async def convert_to_usdt(amount, from_currency, rates):
 
 
 async def convert_currency(amount, from_currency, to_currency, rates):
-    """
-    Конвертация валют и криптовалют.
-    :param amount: Сумма для конвертации.
-    :param from_currency: Исходная валюта (или криптовалюта).
-    :param to_currency: Целевая валюта (или криптовалюта).
-    :param rates: Словарь с курсами фиатных валют.
-    :return: Сконвертированная сумма.
-    """
     amount = float(amount)
+    # if input assets are the same as the output assets
     if from_currency == to_currency:
-        # если исходный актив такой же как целевой
         return amount
 
+    # Fiat -> Fiat
     if (from_currency in rates) and (to_currency in rates):
-        # Фиат → Фиат
         from_rate = rates[to_currency]
         to_rate = rates[from_currency]
-        return format((amount / from_rate) * to_rate, ".2f")
+        return format((amount / from_rate) * to_rate, ".3f")
 
+    # Fiat -> Crypto
     elif (from_currency in rates) and (to_currency not in rates):
-        # Фиат → Криптовалюта
         amount_in_usdt = await convert_to_usdt(amount, from_currency, rates)
         enter_amount = amount_in_usdt / await get_conversion_rate("USDT", to_currency)
-        return format(enter_amount, ".8f")
+        return format(enter_amount, ".9f")
 
+    # Crypto -> Fiat
     elif (from_currency not in rates) and (to_currency in rates):
-        # Криптовалюта → Фиат
         usd_rate = rates["USD"]
         to_rate = rates[to_currency]
         crypto_to_usdt = await get_conversion_rate(from_currency, "USDT")  # цена крипты
         amount_in_usdt = crypto_to_usdt * amount
         enter_amount = (amount_in_usdt / to_rate) * usd_rate
-        return format(enter_amount, ".2f")
+        return format(enter_amount, ".3f")
 
+    # Crypto -> Crypto
     elif (from_currency not in rates) and (to_currency not in rates):
-        # Криптовалюта → USDT → Криптовалюта
         crypto_to_usdt = await get_conversion_rate(from_currency, "USDT")
         amount_in_usdt = crypto_to_usdt * amount
         usdt_in_crypto = await get_conversion_rate("USDT", to_currency)
         enter_amount = amount_in_usdt / usdt_in_crypto
-        return format(enter_amount, ".8f")
+        return format(enter_amount, ".9f")
 
     raise ValueError
 
@@ -82,7 +74,6 @@ async def get_conversion_rate(from_currency, to_currency):
         pair = f"{from_currency}{to_currency}".upper()
         if pair in cryptorates.keys():
             return cryptorates[pair]
-        print("Пробуем обратную пару")
         return await get_conversion_rate(to_currency, from_currency)
 
     except Exception as e:

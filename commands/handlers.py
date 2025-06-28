@@ -8,7 +8,8 @@ from database.errors_config import BadMessageText, BadUserIdError, ManyTransacti
 from database.errors_config import BigNumError
 from operations.transactions import get_history_transactions
 from operations.conversion import con_balance
-from commands.functions import checker_num
+from commands.functions import checker_num, checker_con_num, delete_message
+from loggers.logs import log
 
 # все функции, которые начинаются с rq или kb, берутся с этих файлов
 import commands.keyboards as kb
@@ -63,8 +64,9 @@ async def check_balance(message: Message):
     value = await rq.get_value(user_id)
     style = await rq.get_style(user_id)
     value = oc.values_symbols[style][value]
+    log.debug(f"Check balance {message.from_user.id}")
     await message.answer(
-        f"Ваш баланс активов = <b>{amount}{value}</b>\n"
+        f"Ваш баланс активов – <b>{amount}{value}</b>\n"
         f"Добавить актив можно, нажав на кнопку в клавиатуре бота."
     )
 
@@ -81,21 +83,26 @@ async def input_numbers(message: Message, state: FSMContext):
 @router.message(Conversion.input_number)
 async def input_values(message: Message, state: FSMContext):
     try:
+        await delete_message(message)
+
         user_id = message.from_user.id
-        oc.input_value[user_id] = float(message.text)
         value = oc.first_con_value[user_id]
         style = await rq.get_style(user_id)
 
-        await state.clear()
+        await checker_con_num(message.text, value)
+        # after checker
+        amount = float(message.text)
+        oc.input_value[user_id] = amount
+
         await message.answer(
-            f"Вы указали: {message.text} {oc.values_symbols[style][value]}."
-            f"\nВыберите валюту из которой будет перевод⬇️",
+            f"Вы указали: <b>{amount:,} {oc.values_symbols[style][value]}</b>."
+            f"\nВыберите валюту, в которую требуется конвертировать сумму⬇️",
             reply_markup=kb.clbk.popular_values("endcon"),
         )
-    except ValueError:
-        await message.answer(
-            "Ошибка в получении сообщения, скорее всего вы ввели неприемлемый тип сообщения."
-        )
+    except BadMessageText as ex:
+        await message.answer(f"{ex}")
+
+    finally:
         await state.clear()
 
 
@@ -154,6 +161,7 @@ async def add_assets_end(message: Message, state: FSMContext):
         description = str(message.text)
         await rq.Transactions.add(value, message.from_user.id, assets, description)
         await message.answer("Функция произведена успешно✅")
+        log.debug(f"Add assets {message.from_user.id}")
     except ManyTransactionsError as ex:
         await message.answer(f"{ex}")
     except AssertionError:
@@ -199,6 +207,7 @@ async def delete_assets_end(message: Message, state: FSMContext):
         description = str(message.text)
         await rq.Transactions.add(value, message.from_user.id, assets, description)
         await message.answer("Функция произведена успешно✅")
+        log.debug(f"Add losses {message.from_user.id}")
     except AssertionError:
         await message.answer("Ошибка, вы ввели слишком много символов")
     except ManyTransactionsError as ex:
@@ -228,6 +237,7 @@ async def check_history_transactions(message: Message):
         )
     else:
         await message.answer(list_transactions[0])
+    log.debug(f"Check history transactions {message.from_user.id}")
 
 
 @router.message(F.text == "Изменить транзакцию📝")
@@ -258,6 +268,7 @@ async def final_transaction(message: Message, state: FSMContext):
         amount = oc.user_choise.get(message.from_user.id)
         await rq.Transactions.edit(value=amount, tg_id=message.from_user.id, num_id=num_id)
         await message.answer("Транзакция успешно изменена!")
+        log.debug(f"Edit transaction {message.from_user.id}")
     except BadUserIdError as ex:
         await message.answer(f"{ex}")
     finally:
@@ -271,6 +282,7 @@ async def transaction_delete(message: Message, state: FSMContext):
         await state.clear()
         await rq.Transactions.delete(tg_id=message.from_user.id, num_id=num_id)
         await message.answer("Транзакция успешно удалена!")
+        log.debug(f"Delete transaction {message.from_user.id}")
     except BadUserIdError as ex:
         await message.answer(f"{ex}")
     finally:

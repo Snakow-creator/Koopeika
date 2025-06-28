@@ -21,7 +21,7 @@ async def get_history_transactions(user_id):
     user = await rq.user_get(user_id)
     timezone, style = user.time_zone, user.style
     list_transactions = []
-    text = "<b>История тразнакций:</b>\n"
+    text = "<b>История транзакций:</b>\n"
     text_transactions = await rq.Transactions.history_transactions(user_id)
 
     for index, info in enumerate(text_transactions, start=1):

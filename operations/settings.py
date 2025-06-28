@@ -34,14 +34,29 @@ async def clbk_value_edit(action, tg_id):
     return text
 
 
+async def clbk_fiat_amount_edit(action, tg_id):
+    await rq.fiat_amount_edit(action, tg_id)
+    text = f"Вы изменили кол-во чисел после запятой(фиат) на <b>{action}</b>"
+    return text
+
+
+async def clbk_crypto_amount_edit(action: int, tg_id):
+    await rq.crypto_amount_edit(action, tg_id)
+    text = f"Вы изменили кол-во чисел после запятой(криптовалюта) на <b>{action}</b>"
+    return text
+
+
 async def clbk_info(callback):
     await callback.answer("")
     user = await rq.user_get(callback.from_user.id)
     await callback.message.edit_text(
-        f"Информация\n"
+        f"Информация:\n"
+        f"➖➖➖➖➖\n"
         f"Часовой пояс: <b>{user.time_zone}</b>\n"
         f"Установленная валюта: <b>{user.value}</b>\n"
-        f"Стиль: <b>{oc.styles_keys[user.style]}</b>",
+        f"Стиль валют: <b>{oc.styles_keys[user.style]}</b>\n"
+        f"Кол-во чисел после запятой(фиат): <b>{user.fiat_amount}</b>\n"
+        f"Кол-во чисел после запятой(крипта): <b>{user.crypto_amount}</b>"
     )
 
 

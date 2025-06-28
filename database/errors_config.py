@@ -1,4 +1,4 @@
-# делаем свои классы ошибок
+# create 
 
 
 class BadUserIdError(Exception):

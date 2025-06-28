@@ -1,7 +1,7 @@
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, KeyboardButton, ReplyKeyboardMarkup
 
 import database.online_config as oc
-
+import database.requests as rq
 
 # add main keyboard
 main = ReplyKeyboardMarkup(
@@ -204,6 +204,19 @@ class clbk:
         ]
         return InlineKeyboardMarkup(inline_keyboard=buttons)
 
+
+    # fast input number for convertation
+    @staticmethod
+    def input_numbers(sym: str) -> InlineKeyboardMarkup:
+        buttons = [
+            [
+                InlineKeyboardButton(text=f"1 {sym}", callback_data="con_input_amount_1"),
+                InlineKeyboardButton(text=f"100 {sym}", callback_data="con_input_amount_100"),
+                InlineKeyboardButton(text=f"1000 {sym}", callback_data="con_input_amount_1000")
+            ]
+        ]
+        return InlineKeyboardMarkup(inline_keyboard=buttons)
+
     # settings keyboard, and his keyboards
     @staticmethod
     def settings() -> InlineKeyboardMarkup:
@@ -212,7 +225,8 @@ class clbk:
                 InlineKeyboardButton(text="Изменить часовой пояс🕰", callback_data="clbk_edit_timezone"),
                 InlineKeyboardButton(text="Изменить валюту💱", callback_data="clbk_edit_value"),
             ],
-            [InlineKeyboardButton(text="Стиль отображения валют", callback_data="clbk_edit_style")],
+            [InlineKeyboardButton(text="Стиль валют", callback_data="clbk_edit_style"),
+             InlineKeyboardButton(text="Кол-во десятичных знаков", callback_data="clbk_edit_nums")],
             [InlineKeyboardButton(text="Информацияℹ️", callback_data="clbk_edit_info")],
         ]
         return InlineKeyboardMarkup(inline_keyboard=buttons)
@@ -226,11 +240,11 @@ class clbk:
                 InlineKeyboardButton(text="UTC+6", callback_data="time_zone_+6"),
             ],
             [
+            [
                 InlineKeyboardButton(text="UTC-11", callback_data="time_zone_-11"),
                 InlineKeyboardButton(text="UTC-2", callback_data="time_zone_-2"),
                 InlineKeyboardButton(text="UTC+7", callback_data="time_zone_+7"),
             ],
-            [
                 InlineKeyboardButton(text="UTC-10", callback_data="time_zone_-10"),
                 InlineKeyboardButton(text="UTC-1", callback_data="time_zone_-1"),
                 InlineKeyboardButton(text="UTC+8", callback_data="time_zone_+8"),
@@ -313,6 +327,48 @@ class clbk:
             [
                 InlineKeyboardButton(text="Изменить сумму✏️", callback_data="edit_assets"),
                 InlineKeyboardButton(text="Удалить транзакцию🗑", callback_data="edit_delete"),
+            ]
+        ]
+        return InlineKeyboardMarkup(inline_keyboard=buttons)
+
+    @staticmethod
+    def choise_amount() -> InlineKeyboardMarkup:
+        buttons = [
+            [
+                InlineKeyboardButton(text="Фиаты💵", callback_data="amount_edit_fiat"),
+                InlineKeyboardButton(text="Криптовалюты🪙", callback_data="amount_edit_crypto"),
+            ]
+        ]
+        return InlineKeyboardMarkup(inline_keyboard=buttons)
+
+    @staticmethod
+    def choise_fiat_amount() -> InlineKeyboardMarkup:
+        buttons = [
+            [
+                InlineKeyboardButton(text="1", callback_data="fiat_amount_1"),
+                InlineKeyboardButton(text="2", callback_data="fiat_amount_2"),
+                InlineKeyboardButton(text="3", callback_data="fiat_amount_3"),
+            ]
+        ]
+        return InlineKeyboardMarkup(inline_keyboard=buttons)
+
+    @staticmethod
+    def choise_crypto_amount() -> InlineKeyboardMarkup:
+        buttons = [
+            [
+                InlineKeyboardButton(text="1", callback_data="crypto_amount_1"),
+                InlineKeyboardButton(text="2", callback_data="crypto_amount_2"),
+                InlineKeyboardButton(text="3", callback_data="crypto_amount_3"),
+            ],
+            [
+                InlineKeyboardButton(text="4", callback_data="crypto_amount_4"),
+                InlineKeyboardButton(text="5", callback_data="crypto_amount_5"),
+                InlineKeyboardButton(text="6", callback_data="crypto_amount_6"),
+            ],
+            [
+                InlineKeyboardButton(text="7", callback_data="crypto_amount_7"),
+                InlineKeyboardButton(text="8", callback_data="crypto_amount_8"),
+                InlineKeyboardButton(text="9", callback_data="crypto_amount_9"),
             ]
         ]
         return InlineKeyboardMarkup(inline_keyboard=buttons)

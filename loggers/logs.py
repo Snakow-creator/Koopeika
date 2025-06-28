@@ -1,13 +1,19 @@
 import logging
 
+from secret.config import DEBUG
+
 log = logging.getLogger(__name__)
-log.setLevel(logging.DEBUG)
 
 console = logging.StreamHandler()
 file_handler = logging.FileHandler("logs.log")
 
 def start_logging():
-    console.setLevel(logging.INFO)
+    if DEBUG == True: # developer mode
+        log.setLevel(logging.DEBUG)
+        console.setLevel(logging.DEBUG)
+    else:
+        log.setLevel(logging.INFO)
+        console.setLevel(logging.INFO)
     formatter = logging.Formatter("%(name)-4s: %(levelname)-8s %(message)s %(asctime)s")
     console.setFormatter(formatter)
 

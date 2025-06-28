@@ -1,6 +1,9 @@
+from operations.rates import get_exchange_rates, get_cryptorates
+
 # важные переменные
-rates = {}
-cryptorates = {}
+rates = get_exchange_rates()
+cryptorates = get_cryptorates()
+
 
 # переменные юзера, используются для активов
 user_choise = {}
@@ -243,6 +246,50 @@ max_nun_values = {
     "ETH": 300,  # Эфир
     "SOL": 8000,  # Solana
     "TON": 250_000,  # Toncoin
+}
+
+max_con_values = {
+    "AUD": 1_500_000_000_000_000,  # Australian Dollar
+    "AZN": 1_700_000_000_000_000,  # Azerbaijani Manat
+    "BRL": 5_000_000_000_000_000,  # Brazilian Real
+    "BYN": 3_300_000_000_000_000,  # Belarusian Ruble
+    "CAD": 1_400_000_000_000_000,  # Canadian Dollar
+    "CHF": 1_100_000_000_000_000,  # Swiss Franc
+    "CNY": 7_200_000_000_000_000,  # Chinese Yuan
+    "CZK": 23_000_000_000_000_000, # Czech Koruna
+    "DKK": 6_900_000_000_000_000,  # Danish Krone
+    "EUR": 1_100_000_000_000_000,  # Euro
+    "GBP": 1_300_000_000_000_000,  # British Pound Sterling
+    "GEL": 2_600_000_000_000_000,  # Georgian Lari
+    "IRR": 42_000_000_000_000_000_000, # Iranian Rial
+    "INR": 83_000_000_000_000_000, # Indian Rupee
+    "JPY": 158_000_000_000_000_000, # Japanese Yen
+    "KWD": 310_000_000_000_000,    # Kuwaiti Dinar
+    "KGS": 91_000_000_000_000_000, # Kyrgyzstani Som
+    "KRW": 1_350_000_000_000_000_000, # South Korean Won
+    "MYR": 4_800_000_000_000_000,  # Malaysian Ringgit
+    "MDL": 17_500_000_000_000_000, # Moldovan Leu
+    "MXN": 18_000_000_000_000_000, # Mexican Peso
+    "NOK": 11_000_000_000_000_000, # Norwegian Krone
+    "PLN": 4_500_000_000_000_000,  # Polish Zloty
+    "RUB": 90_000_000_000_000_000, # Russian Ruble
+    "SAR": 3_800_000_000_000_000,  # Saudi Riyal
+    "SGD": 1_350_000_000_000_000,  # Singapore Dollar
+    "SEK": 10_900_000_000_000_000, # Swedish Krona
+    "THB": 37_000_000_000_000_000, # Thai Baht
+    "TJS": 11_500_000_000_000_000, # Tajikistani Somoni
+    "TRY": 34_000_000_000_000_000, # Turkish Lira
+    "UAH": 41_000_000_000_000_000, # Ukrainian Hryvnia
+    "USD": 1_000_000_000_000_000,  # United States Dollar
+    "UZS": 12_500_000_000_000_000_000, # Uzbekistani Som
+    "VND": 25_000_000_000_000_000_000, # Vietnamese Dong
+    "ZAR": 15_000_000_000_000_000, # South African Rand
+    "AED": 3_700_000_000_000_000,  # UAE Dirham
+    "KZT": 550_000_000_000_000_000, # Kazakhstani Tenge
+    "BTC": 15_000_000,              # Bitcoin (approx. $65,000 per BTC)
+    "ETH": 450_000,                 # Ethereum (approx. $2,200 per ETH)
+    "SOL": 30_000_000,              # Solana (approx. $30 per SOL)
+    "TON": 500_000_000,             # Toncoin (approx. $2 per TON)
 }
 
 

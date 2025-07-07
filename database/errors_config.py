@@ -1,4 +1,4 @@
-# create 
+# create errors
 
 
 class BadUserIdError(Exception):
@@ -22,4 +22,10 @@ class ManyTransactionsError(Exception):
 class BigNumError(Exception):
     def __init__(self):
         message = "Вы ввели слишком много активов, введите число поменьше."
+        super().__init__(message)
+
+
+class BigCommentError(Exception):
+    def __init__(self):
+        message = "Вы ввели слишком длинный комментарий, введите его поменьше."
         super().__init__(message)

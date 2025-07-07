@@ -1,7 +1,7 @@
 import database.online_config as oc
 
 
-async def check_list_values(action, style=None, num=None):
+async def choise_value(action, style=None, num=None):
     value = action
     answer_ = f"Вы выбрали: {oc.values[action]} ({value})"
     if style and num:

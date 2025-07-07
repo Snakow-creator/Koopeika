@@ -3,10 +3,6 @@ import database.online_config as oc
 import database.requests as rq
 
 
-async def text_settings():
-    return "Выбери параметр который хочешь изменить."
-
-
 async def change_time_zone(callback=None):
     await callback.answer("")
     text = (
@@ -17,38 +13,36 @@ async def change_time_zone(callback=None):
         'ты можешь ознакомиться <a href="https://ru.wikipedia.org/wiki/Список_часовых_поясов_по_странам">здесь</a>'
         ""
     )
-    await callback.message.edit_text(
-        text=text, reply_markup=kb.clbk.time_zone(), disable_web_page_preview=True
-    )
+    await callback.message.edit_text(text, reply_markup=kb.set.time_zone(), disable_web_page_preview=True)
 
 
-async def clbk_time_zone_edit(action, tg_id):
-    await rq.time_zone_edit(action, tg_id)
+async def time_zone_edit(action, tg_id):
+    await rq.Edit.time_zone(action, tg_id)
     text = f"Вы изменили часовой пояс на <b>UTC{action}</b>"
     return text
 
 
-async def clbk_value_edit(action, tg_id):
-    await rq.value_edit(action, tg_id)
-    text = f"Вы изменили валюту на <b>{action}</b>"
+async def default_value_edit(action, tg_id):
+    await rq.Edit.value(action, tg_id)
+    text = f"Вы изменили валюту на <b>{action}</b>({oc.values[action]})"
     return text
 
 
-async def clbk_fiat_amount_edit(action, tg_id):
-    await rq.fiat_amount_edit(action, tg_id)
+async def fiat_amount_edit(action, tg_id):
+    await rq.Edit.fiat_amount(action, tg_id)
     text = f"Вы изменили кол-во чисел после запятой(фиат) на <b>{action}</b>"
     return text
 
 
-async def clbk_crypto_amount_edit(action: int, tg_id):
-    await rq.crypto_amount_edit(action, tg_id)
+async def crypto_amount_edit(action: int, tg_id):
+    await rq.Edit.crypto_amount(action, tg_id)
     text = f"Вы изменили кол-во чисел после запятой(криптовалюта) на <b>{action}</b>"
     return text
 
 
-async def clbk_info(callback):
+async def settings_user_info(callback):
     await callback.answer("")
-    user = await rq.user_get(callback.from_user.id)
+    user = await rq.Get.user(callback.from_user.id)
     await callback.message.edit_text(
         f"Информация:\n"
         f"➖➖➖➖➖\n"
@@ -69,5 +63,5 @@ async def clbk_style(callback):
         "\nПример:"
         "\nUSD - $ (Символы)"
         "\nUSD - USD 🇺🇸 (Названия)",
-        reply_markup=kb.clbk.change_style(),
+        reply_markup=kb.set.change_style(),
     )

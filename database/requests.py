@@ -3,10 +3,21 @@ from zoneinfo import ZoneInfo
 
 from sqlalchemy import desc, select
 
-from commands.functions import checker_id
+from operations.verification import checker_id
 from database.models import Transaction, User, async_session
-from database.errors_config import ManyTransactionsError
+from database.errors_config import ManyTransactionsError, BigCommentError
 from loggers.logs import log
+
+
+# добавление юзера в бд(команда старт)
+async def add_user(tg_id: int):
+    async with async_session() as session:
+        user = await session.scalar(select(User).where(User.tg_id == tg_id))
+
+        if not user:
+            session.add(User(tg_id=tg_id, full_balance=0, time_zone="+3", value="USD", style="symbols"))
+            log.debug(f"Add user {tg_id}")
+            await session.commit()
 
 
 # класс операций связанных с балансом
@@ -28,7 +39,6 @@ class Transactions:
     @staticmethod
     async def history_transactions(tg_id: int):
         async with async_session() as session:
-
             return await session.scalars(
                 select(Transaction).where(Transaction.user_id == tg_id).order_by(desc(Transaction.id))
             )
@@ -36,13 +46,14 @@ class Transactions:
     @staticmethod
     async def add(value: str, tg_id: int, assets: str, description: str):
         async with async_session() as session:
-            assert len(description) <= 30
-            transactions = await Transactions.history_transactions(tg_id)
+            if len(description) <= 30:
+                raise BigCommentError()
             # если транзакции больше 50 - выдаем ошибку
             if len(list(transactions)) == 50:
                 raise ManyTransactionsError()
 
-            stmt = await session.scalar(select(User).where(User.tg_id == tg_id))
+            transactions = await Transactions.history_transactions(tg_id)
+            stmt = await Get.user(tg_id)
             time = datetime.now(ZoneInfo("Europe/Moscow")).strftime("%Y-%m-%d %H:%M")
             session.add(
                 Transaction(
@@ -62,7 +73,8 @@ class Transactions:
             transaction = await session.scalar(select(Transaction).where(Transaction.id == num_id))
             op = transaction.amount[0]
             transaction.amount = op + f"{str(value)}"
-            await checker_id(tg_id, num_id)
+            user_transaction = await Transactions.history_transactions(tg_id)
+            await checker_id(num_id, user_transaction)
 
             await session.commit()
 
@@ -70,104 +82,95 @@ class Transactions:
     async def delete(tg_id: int, num_id: int):
         async with async_session() as session:
             transaction = await session.scalar(select(Transaction).where(Transaction.id == num_id))
-            await checker_id(tg_id, num_id)
+            user_transaction = await Transactions.history_transactions(tg_id)
+            await checker_id(num_id, user_transaction)
             transaction.user_id = f"{transaction.user_id}*"
 
             await session.commit()
 
 
-# добавление юзера в бд(команда старт)
-async def add_user(tg_id: int):
-    async with async_session() as session:
-        user = await session.scalar(select(User).where(User.tg_id == tg_id))
+class Get:
+    @staticmethod
+    async def user(tg_id: int):
+        async with async_session() as session:
+            user = await session.scalar(select(User).where(User.tg_id == tg_id))
 
-        if not user:
-            session.add(User(tg_id=tg_id, full_balance=0, time_zone="+3", value="USD", style="symbols"))
-            log.debug(f"Add user {tg_id}")
+            return user
+
+    @staticmethod
+    async def value(tg_id):
+        async with async_session() as session:
+            user = await session.scalar(select(User).where(User.tg_id == tg_id))
+
+            return user.value
+
+    @staticmethod
+    async def style(tg_id):
+        async with async_session() as session:
+            user = await session.scalar(select(User).where(User.tg_id == tg_id))
+
+            return user.style
+
+    @staticmethod
+    async def time_zone(tg_id: int):
+        async with async_session() as session:
+            user = await async_session().scalar(select(User).where(User.tg_id == tg_id))
+
+            return user.time_zone
+
+    @staticmethod
+    async def fiat_amount(tg_id):
+        async with async_session() as session:
+            user = await session.scalar(select(User).where(User.tg_id == tg_id))
+
+            return user.fiat_amount
+
+    @staticmethod
+    async def crypto_amount(tg_id):
+        async with async_session() as session:
+            user = await session.scalar(select(User).where(User.tg_id == tg_id))
+
+            return user.crypto_amount
+
+
+class Edit:
+    @staticmethod
+    async def time_zone(action, tg_id):
+        async with async_session() as session:
+            user = await session.scalar(select(User).where(User.tg_id == tg_id))
+            user.time_zone = action
+
             await session.commit()
 
+    # операции с валютой по умолчанию
+    @staticmethod
+    async def value(action, tg_id):
+        async with async_session() as session:
+            user = await session.scalar(select(User).where(User.tg_id == tg_id))
+            user.value = action
 
-async def user_get(tg_id: int):
-    async with async_session() as session:
-        user = await session.scalar(select(User).where(User.tg_id == tg_id))
+            await session.commit()
 
-        return user
+    @staticmethod
+    async def style(style, tg_id):
+        async with async_session() as session:
+            user = await session.scalar(select(User).where(User.tg_id == tg_id))
+            user.style = style
 
+            await session.commit()
 
-async def get_value(tg_id):
-    async with async_session() as session:
-        user = await session.scalar(select(User).where(User.tg_id == tg_id))
+    @staticmethod
+    async def fiat_amount(amount, tg_id):
+        async with async_session() as session:
+            user = await session.scalar(select(User).where(User.tg_id == tg_id))
+            user.fiat_amount = amount
 
-        return user.value
+            await session.commit()
 
+    @staticmethod
+    async def crypto_amount(amount, tg_id):
+        async with async_session() as session:
+            user = await session.scalar(select(User).where(User.tg_id == tg_id))
+            user.crypto_amount = amount
 
-async def get_style(tg_id):
-    async with async_session() as session:
-        user = await session.scalar(select(User).where(User.tg_id == tg_id))
-
-        return user.style
-
-
-async def get_time_zone(tg_id: int):
-    async with async_session() as session:
-        user = await async_session().scalar(select(User).where(User.tg_id == tg_id))
-
-        return user.time_zone
-
-
-async def get_fiat_amount(tg_id):
-    async with async_session() as session:
-        user = await session.scalar(select(User).where(User.tg_id == tg_id))
-
-        return user.fiat_amount
-
-
-async def get_crypto_amount(tg_id):
-    async with async_session() as session:
-        user = await session.scalar(select(User).where(User.tg_id == tg_id))
-
-        return user.crypto_amount
-
-
-async def time_zone_edit(action, tg_id):
-    async with async_session() as session:
-        user = await session.scalar(select(User).where(User.tg_id == tg_id))
-        user.time_zone = action
-
-        await session.commit()
-
-
-# операции с валютой по умолчанию
-async def value_edit(action, tg_id):
-    async with async_session() as session:
-        user = await session.scalar(select(User).where(User.tg_id == tg_id))
-        user.value = action
-
-        await session.commit()
-
-
-async def style_edit(style, tg_id):
-    async with async_session() as session:
-        user = await session.scalar(select(User).where(User.tg_id == tg_id))
-        user.style = style
-
-        await session.commit()
-
-
-async def fiat_amount_edit(amount, tg_id):
-    async with async_session() as session:
-        user = await session.scalar(select(User).where(User.tg_id == tg_id))
-        user.fiat_amount = amount
-
-        await session.commit()
-
-
-async def crypto_amount_edit(amount, tg_id):
-    async with async_session() as session:
-        user = await session.scalar(select(User).where(User.tg_id == tg_id))
-        user.crypto_amount = amount
-
-        await session.commit()
-
-
-
+            await session.commit()

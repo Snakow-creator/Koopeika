@@ -1,14 +1,9 @@
 from aiogram import F, Router
 from aiogram.types import Message
-from aiogram.fsm.context import FSMContext
-from aiogram.fsm.state import StatesGroup, State
 from aiogram.filters import CommandStart
 
-from database.errors_config import BadMessageText, BadUserIdError, ManyTransactionsError
-from database.errors_config import BigNumError
 from operations.transactions import get_history_transactions
 from operations.conversion import con_balance
-from commands.functions import checker_num, checker_con_num, delete_message
 from loggers.logs import log
 
 # все функции, которые начинаются с rq или kb, берутся с этих файлов
@@ -17,31 +12,12 @@ import database.requests as rq
 import database.online_config as oc
 import operations.settings as os
 
-# роутер и личные переменные юзера
 router = Router()
-
-
-# импорты фсм контекста
-class Balance(StatesGroup):
-    change = State()
-    change_end = State()
-    deprive = State()
-    deprive_end = State()
-
-
-class Transaction(StatesGroup):
-    edit = State()
-    edit_end = State()
-    delete = State()
-
-
-class Conversion(StatesGroup):
-    input_number = State()
 
 
 # стартовая команда
 @router.message(CommandStart())
-async def start(message: Message):
+async def start_bot(message: Message):
     await message.delete()
     await rq.add_user(message.from_user.id)
     oc.msg[message.from_user.id] = await message.answer(
@@ -58,11 +34,12 @@ async def back_button(message: Message):
 
 # проверка баланса
 @router.message(F.text == "Баланс💲")
-async def check_balance(message: Message):
+async def balance_check(message: Message):
     user_id = message.from_user.id
     amount = await con_balance(user_id, oc.rates)
-    value = await rq.get_value(user_id)
-    style = await rq.get_style(user_id)
+    user = await rq.Get.user(user_id)
+    value = user.value
+    style = user.style
     value = oc.values_symbols[style][value]
     log.debug(f"Check balance {message.from_user.id}")
     await message.answer(
@@ -72,38 +49,12 @@ async def check_balance(message: Message):
 
 
 @router.message(F.text == "Конвертация🏪")
-async def input_numbers(message: Message, state: FSMContext):
+async def conversion(message: Message):
     oc.first_con_value[message.from_user.id] = None
     await message.answer(
         "Укажите валюту, в которую хотите конвертировать:",
-        reply_markup=kb.clbk.popular_values("con"),
+        reply_markup=kb.con.popular_values("con"),
     )
-
-
-@router.message(Conversion.input_number)
-async def input_values(message: Message, state: FSMContext):
-    try:
-        await delete_message(message)
-
-        user_id = message.from_user.id
-        value = oc.first_con_value[user_id]
-        style = await rq.get_style(user_id)
-
-        await checker_con_num(message.text, value)
-        # after checker
-        amount = float(message.text)
-        oc.input_value[user_id] = amount
-
-        await message.answer(
-            f"Вы указали: <b>{amount:,} {oc.values_symbols[style][value]}</b>."
-            f"\nВыберите валюту, в которую требуется конвертировать сумму⬇️",
-            reply_markup=kb.clbk.popular_values("endcon"),
-        )
-    except BadMessageText as ex:
-        await message.answer(f"{ex}")
-
-    finally:
-        await state.clear()
 
 
 # Добавление клавиатуры активов
@@ -116,109 +67,37 @@ async def assets_keyboard(message: Message):
 
 
 @router.message(F.text == "Список валют📖")
-async def currency_list(message: Message):
+async def list_region_values(message: Message):
     await message.answer(
         "<b>Выберите регион страны</b>,\nкод валюты которой вы желаете посмотреть.\n"
         "Или вы можете выбрать <b>Популярные валюты</b> и <b>Криптовалюты</b>.",
-        reply_markup=kb.regions(),
+        reply_markup=kb.clbk.regions(),
     )
 
 
-# добавление баланса
+# add assets
 @router.message(F.text == "Добавить активы💸")
 async def add_assets(message: Message):
     oc.user_choise[message.from_user.id] = "change"
     await message.answer(
         "Укажите <b>валюту</b>:",
-        reply_markup=kb.clbk.popular_values(convertation=False),
+        reply_markup=kb.con.popular_values(convertation=False),
     )
 
 
-@router.message(Balance.change)
-async def add_assets_con(message: Message, state: FSMContext):
-    try:
-        value = oc.data_value.get(message.from_user.id, 0)
-        await checker_num(message.text, value)
-        oc.user_choise[message.from_user.id] = "+" + message.text
-        await state.set_state(Balance.change_end)
-        await message.answer(
-            "Введите комментарий(максимум <b>30</b> символов):",
-            reply_markup=kb.clbk.no_comment(),
-        )
-    except BadMessageText as ex:
-        await message.answer(f"{ex}")
-        await state.clear()
-    except BigNumError as ex:
-        await message.answer(f"{ex}")
-        await state.clear()
-
-
-@router.message(Balance.change_end)
-async def add_assets_end(message: Message, state: FSMContext):
-    try:
-        value = oc.data_value.get(message.from_user.id, 0)
-        assets = oc.user_choise.get(message.from_user.id, 0)
-        description = str(message.text)
-        await rq.Transactions.add(value, message.from_user.id, assets, description)
-        await message.answer("Функция произведена успешно✅")
-        log.debug(f"Add assets {message.from_user.id}")
-    except ManyTransactionsError as ex:
-        await message.answer(f"{ex}")
-    except AssertionError:
-        await message.answer("Ошибка, вы ввели слишком много символов.")
-    finally:
-        await state.clear()
-
-
-# списание трат
+# deprive assets
 @router.message(F.text == "Указать траты📉")
-async def delete_assets(message: Message):
+async def deprive_assets(message: Message):
     oc.user_choise[message.from_user.id] = "deprive"
     await message.answer(
         "Укажите <b>валюту</b>:",
-        reply_markup=kb.clbk.popular_values(convertation=False),
+        reply_markup=kb.con.popular_values(convertation=False),
     )
 
 
-@router.message(Balance.deprive)
-async def delete_assets_con(message: Message, state: FSMContext):
-    try:
-        value = oc.data_value.get(message.from_user.id, 0)
-        await checker_num(message.text, value)
-        oc.user_choise[message.from_user.id] = "-" + message.text
-        await state.set_state(Balance.deprive_end)
-        await message.answer(
-            "Введите комментарий(максимум <b>30</b> символов):",
-            reply_markup=kb.clbk.no_comment(),
-        )
-    except BadMessageText as ex:
-        await message.answer(f"{ex}")
-        await state.clear()
-    except BigNumError as ex:
-        await message.answer(f"{ex}")
-        await state.clear()
-
-
-@router.message(Balance.deprive_end)
-async def delete_assets_end(message: Message, state: FSMContext):
-    try:
-        value = oc.data_value.get(message.from_user.id, 0)
-        assets = oc.user_choise.get(message.from_user.id, 0)
-        description = str(message.text)
-        await rq.Transactions.add(value, message.from_user.id, assets, description)
-        await message.answer("Функция произведена успешно✅")
-        log.debug(f"Add losses {message.from_user.id}")
-    except AssertionError:
-        await message.answer("Ошибка, вы ввели слишком много символов")
-    except ManyTransactionsError as ex:
-        await message.answer(f"{ex}")
-    finally:
-        await state.clear()
-
-
-# Добавление клавиатуры транзакции
+#
 @router.message(F.text == "Транзакции🔁")
-async def transactions(message: Message):
+async def transactions_keyboard(message: Message):
     await message.answer(
         'Вы перешли в "Операции с транзакциями"' "\nВыберите нужное вам действие:",
         reply_markup=kb.trasnactions,
@@ -242,54 +121,9 @@ async def check_history_transactions(message: Message):
 
 @router.message(F.text == "Изменить транзакцию📝")
 async def edit_transaction(message: Message):
-    await message.answer("Выберите что сделать с транзакцией:", reply_markup=kb.clbk.change_transaction())
-
-
-@router.message(Transaction.edit)
-async def con_transaction(message: Message, state: FSMContext):
-    try:
-        value = await rq.get_value(message.from_user.id)
-        await checker_num(message.text, value)
-        oc.user_choise[message.from_user.id] = float(message.text)
-        await state.set_state(Transaction.edit_end)
-        await message.answer("Напишите айди транзакции:")
-    except BadMessageText as ex:
-        await message.answer(f"{ex}")
-        await state.clear()
-    except BigNumError as ex:
-        await message.answer(f"{ex}")
-        await state.clear()
-
-
-@router.message(Transaction.edit_end)
-async def final_transaction(message: Message, state: FSMContext):
-    try:
-        num_id = int(message.text)
-        amount = oc.user_choise.get(message.from_user.id)
-        await rq.Transactions.edit(value=amount, tg_id=message.from_user.id, num_id=num_id)
-        await message.answer("Транзакция успешно изменена!")
-        log.debug(f"Edit transaction {message.from_user.id}")
-    except BadUserIdError as ex:
-        await message.answer(f"{ex}")
-    finally:
-        await state.clear()
-
-
-@router.message(Transaction.delete)
-async def transaction_delete(message: Message, state: FSMContext):
-    try:
-        num_id = int(message.text)
-        await state.clear()
-        await rq.Transactions.delete(tg_id=message.from_user.id, num_id=num_id)
-        await message.answer("Транзакция успешно удалена!")
-        log.debug(f"Delete transaction {message.from_user.id}")
-    except BadUserIdError as ex:
-        await message.answer(f"{ex}")
-    finally:
-        await state.clear()
+    await message.answer("Выберите что сделать с транзакцией:", reply_markup=kb.set.edit_transaction())
 
 
 @router.message(F.text == "Настройки⚙️")
-async def check_settings(message: Message):
-    text = await os.text_settings()
-    await message.answer(text=text, reply_markup=kb.clbk.settings())
+async def settings(message: Message):
+    await message.answer("Выбери параметр который хочешь изменить.", reply_markup=kb.set.settings())

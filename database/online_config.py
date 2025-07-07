@@ -155,9 +155,9 @@ values_symbols = {
         "AED": "د.إ",
         "KZT": "₸",
         "BTC": "₿",
-        "ETH": "ETH",
-        "SOL": "SOL",
-        "TON": "TON",
+        "ETH": " ETH",
+        "SOL": " SOL",
+        "TON": " TON",
     },
     "codename": {
         "AUD": " AUD",
@@ -408,15 +408,15 @@ currency_dict = {
         🇨🇳 CNY — Китайский юань
         🇳🇿 NZD — Новозеландский доллар
         🇸🇪 SEK — Шведская крона""",
-    "crypto": """<b>Топ 10 криптовалют:</b>
-        1. BTC — Биткойн
-        2. ETH — Эфириум
-        3. USDT — Тезер
-        4. BNB — Binance Coin
-        5. SOL — Солана
-        6. USDC — USD Coin
-        7. XRP — XRP
-        8. ADA — Кардано
-        9. DOGE — Догикоин
-        10. TON — Тонкойн""",
+    "crypto": """<b>Популярные криптовалюты:</b>
+        1. <b>BTC</b> — Bitcoin
+        2. <b>ETH</b> — Ethereum
+        3. <b>BNB</b> — Binance Coin
+        4. <b>SOL</b> — Solana
+        5. <b>XRP</b> — Ripple
+        6. <b>TON</b> — Toncoin
+        7. <b>ADA</b> — Cardano
+        8. <b>AVAX</b> — Avalanche
+        9. <b>DOGE</b> — Dogecoin
+        10. <b>TRX</b> — TRON""",
 }

@@ -1,7 +1,6 @@
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, KeyboardButton, ReplyKeyboardMarkup
 
 import database.online_config as oc
-import database.requests as rq
 
 # add main keyboard
 main = ReplyKeyboardMarkup(
@@ -15,7 +14,6 @@ main = ReplyKeyboardMarkup(
     input_field_placeholder="👇🏻👇🏻👇🏻",
 )
 
-# assets keyboard
 assets = ReplyKeyboardMarkup(
     keyboard=[
         [KeyboardButton(text="Добавить активы💸"), KeyboardButton(text="Указать траты📉")],
@@ -35,60 +33,14 @@ trasnactions = ReplyKeyboardMarkup(
     input_field_placeholder="👇🏻👇🏻👇🏻",
 )
 
-#sub_channel - required subscribe
+# sub_channel - required subscribe
 sub_channel = InlineKeyboardMarkup(
-        inline_keyboard=[[InlineKeyboardButton(
-            text="Подписаться на канал", url="https://t.me/obotov")]]
-    )
-
-# regions keyboard which under message
-def regions() -> InlineKeyboardMarkup:
-    buttons = [
-        [
-            InlineKeyboardButton(text="🌍 Европа", callback_data="info_europe"),
-            InlineKeyboardButton(text="🌎 Америка", callback_data="info_america"),
-            InlineKeyboardButton(text="🌏Азия", callback_data="info_asia"),
-        ],
-        [
-            InlineKeyboardButton(text="🌍 Африка и Ближний Восток", callback_data="info_africa"),
-            InlineKeyboardButton(text="🌊 Океания", callback_data="info_oceania"),
-        ],
-        [
-            InlineKeyboardButton(text="💱 Популярные валюты", callback_data="info_values"),
-            InlineKeyboardButton(text="📉 Криптовалюты", callback_data="info_crypto"),
-        ],
-    ]
-    return InlineKeyboardMarkup(inline_keyboard=buttons)
-
-
-# keyboard which returns to regions
-back_regions = InlineKeyboardMarkup(
-    inline_keyboard=[[InlineKeyboardButton(text="Назад⬅️", callback_data="back_reg")]]
+    inline_keyboard=[[InlineKeyboardButton(text="Подписаться на канал", url="https://t.me/obotov")]]
 )
 
 
-# class with buttons under messages
-class clbk:
-    # assets keyboard, add assets without comment
-    @staticmethod
-    def no_comment() -> InlineKeyboardMarkup:
-        button = [[InlineKeyboardButton(text="Без пояснений❌", callback_data="without_comment")]]
-        return InlineKeyboardMarkup(inline_keyboard=button)
-
-    # beautiful keyboard for transactions, change page
-    @staticmethod
-    def transactions(tg_id) -> InlineKeyboardMarkup:
-        page = oc.data_page[tg_id]
-        buttons = [
-            [
-                InlineKeyboardButton(text="⬅️", callback_data="clbk_transaction_left"),
-                InlineKeyboardButton(text=f"{page}", callback_data="clbk_transaction_page"),
-                InlineKeyboardButton(text="➡️", callback_data="clbk_transaction_right"),
-            ]
-        ]
-
-        return InlineKeyboardMarkup(inline_keyboard=buttons)
-
+# class for convertation and assets buttons
+class con:
     # keyboard for popular values
     @staticmethod
     def popular_values(convertation=False) -> InlineKeyboardMarkup:
@@ -121,13 +73,13 @@ class clbk:
                 InlineKeyboardButton(text="SOL", callback_data=f"{data}_value_pop_SOL"),
                 InlineKeyboardButton(text="TON", callback_data=f"{data}_value_pop_TON"),
             ],
-            [InlineKeyboardButton(text="Остальные валюты", callback_data=f"clbk_otherlist_value_{data}")],
+            [InlineKeyboardButton(text="Остальные валюты", callback_data=f"otherlist_value_{data}")],
         ]
         return InlineKeyboardMarkup(inline_keyboard=buttons)
 
     # keyboard for full list
     @staticmethod
-    def full_list(convertation=False) -> InlineKeyboardMarkup:
+    def full_list_values(convertation=False) -> InlineKeyboardMarkup:
         if convertation:
             data = convertation
         else:
@@ -204,30 +156,173 @@ class clbk:
         ]
         return InlineKeyboardMarkup(inline_keyboard=buttons)
 
-
     # fast input number for convertation
     @staticmethod
     def input_numbers(sym: str) -> InlineKeyboardMarkup:
         buttons = [
             [
-                InlineKeyboardButton(text=f"1 {sym}", callback_data="con_input_amount_1"),
-                InlineKeyboardButton(text=f"100 {sym}", callback_data="con_input_amount_100"),
-                InlineKeyboardButton(text=f"1000 {sym}", callback_data="con_input_amount_1000")
+                InlineKeyboardButton(text=f"1{sym}", callback_data="con_input_amount_1"),
+                InlineKeyboardButton(text=f"100{sym}", callback_data="con_input_amount_100"),
+                InlineKeyboardButton(text=f"1000{sym}", callback_data="con_input_amount_1000"),
             ]
         ]
         return InlineKeyboardMarkup(inline_keyboard=buttons)
 
+
+# class for other inline buttons
+class clbk:
+    # assets keyboard, add assets without comment
+    @staticmethod
+    def no_comment() -> InlineKeyboardMarkup:
+        button = [[InlineKeyboardButton(text="Без пояснений❌", callback_data="without_comment")]]
+        return InlineKeyboardMarkup(inline_keyboard=button)
+
+    # beautiful keyboard for transactions, change page
+    @staticmethod
+    def transactions(tg_id) -> InlineKeyboardMarkup:
+        page = oc.data_page[tg_id]
+        buttons = [
+            [
+                InlineKeyboardButton(text="⬅️", callback_data="transaction_left"),
+                InlineKeyboardButton(text=f"{page}", callback_data="transaction_page"),
+                InlineKeyboardButton(text="➡️", callback_data="transaction_right"),
+            ]
+        ]
+
+        return InlineKeyboardMarkup(inline_keyboard=buttons)
+
+    # regions keyboard which under message
+    @staticmethod
+    def regions() -> InlineKeyboardMarkup:
+        buttons = [
+            [
+                InlineKeyboardButton(text="🌍 Европа", callback_data="info_europe"),
+                InlineKeyboardButton(text="🌎 Америка", callback_data="info_america"),
+                InlineKeyboardButton(text="🌏Азия", callback_data="info_asia"),
+            ],
+            [
+                InlineKeyboardButton(text="🌍 Африка и Ближний Восток", callback_data="info_africa"),
+                InlineKeyboardButton(text="🌊 Океания", callback_data="info_oceania"),
+            ],
+            [
+                InlineKeyboardButton(text="💱 Популярные валюты", callback_data="info_values"),
+                InlineKeyboardButton(text="📉 Криптовалюты", callback_data="info_crypto"),
+            ],
+        ]
+        return InlineKeyboardMarkup(inline_keyboard=buttons)
+
+    # keyboard which returns to regions
+    def back_regions() -> InlineKeyboardMarkup:
+        return InlineKeyboardMarkup(
+            inline_keyboard=[[InlineKeyboardButton(text="Назад⬅️", callback_data="back_reg")]]
+        )
+
+
+# class for settings
+class set:
     # settings keyboard, and his keyboards
     @staticmethod
     def settings() -> InlineKeyboardMarkup:
         buttons = [
             [
-                InlineKeyboardButton(text="Изменить часовой пояс🕰", callback_data="clbk_edit_timezone"),
-                InlineKeyboardButton(text="Изменить валюту💱", callback_data="clbk_edit_value"),
+                InlineKeyboardButton(text="Изменить часовой пояс🕰", callback_data="settings_edit_timezone"),
+                InlineKeyboardButton(text="Изменить валюту💱", callback_data="settings_edit_value"),
             ],
-            [InlineKeyboardButton(text="Стиль валют", callback_data="clbk_edit_style"),
-             InlineKeyboardButton(text="Кол-во десятичных знаков", callback_data="clbk_edit_nums")],
-            [InlineKeyboardButton(text="Информацияℹ️", callback_data="clbk_edit_info")],
+            [
+                InlineKeyboardButton(text="Стиль валют", callback_data="settings_edit_style"),
+                InlineKeyboardButton(text="Кол-во десятичных знаков", callback_data="settings_edit_nums"),
+            ],
+            [InlineKeyboardButton(text="Информацияℹ️", callback_data="settings_edit_info")],
+        ]
+        return InlineKeyboardMarkup(inline_keyboard=buttons)
+
+    @staticmethod
+    def change_style() -> InlineKeyboardMarkup:
+        buttons = [
+            [
+                InlineKeyboardButton(text="Символы", callback_data="style_symbols"),
+                InlineKeyboardButton(text="Названия", callback_data="style_codename"),
+            ]
+        ]
+        return InlineKeyboardMarkup(inline_keyboard=buttons)
+
+    # end settings keyboards
+
+    @staticmethod
+    def edit_transaction() -> InlineKeyboardMarkup:
+        buttons = [
+            [
+                InlineKeyboardButton(text="Изменить сумму✏️", callback_data="edit_assets"),
+                InlineKeyboardButton(text="Удалить транзакцию🗑", callback_data="edit_delete"),
+            ]
+        ]
+        return InlineKeyboardMarkup(inline_keyboard=buttons)
+
+    @staticmethod
+    def choise_amount() -> InlineKeyboardMarkup:
+        buttons = [
+            [
+                InlineKeyboardButton(text="Фиаты💵", callback_data="amount_edit_fiat"),
+                InlineKeyboardButton(text="Криптовалюты🪙", callback_data="amount_edit_crypto"),
+            ]
+        ]
+        return InlineKeyboardMarkup(inline_keyboard=buttons)
+
+    @staticmethod
+    def choise_fiat_amount() -> InlineKeyboardMarkup:
+        buttons = [
+            [
+                InlineKeyboardButton(text="1️⃣", callback_data="fiat_amount_1"),
+                InlineKeyboardButton(text="2️⃣", callback_data="fiat_amount_2"),
+                InlineKeyboardButton(text="3️⃣", callback_data="fiat_amount_3"),
+            ]
+        ]
+        return InlineKeyboardMarkup(inline_keyboard=buttons)
+
+    @staticmethod
+    def choise_crypto_amount() -> InlineKeyboardMarkup:
+        buttons = [
+            [
+                InlineKeyboardButton(text="1️⃣", callback_data="crypto_amount_1"),
+                InlineKeyboardButton(text="2️⃣", callback_data="crypto_amount_2"),
+                InlineKeyboardButton(text="3️⃣", callback_data="crypto_amount_3"),
+            ],
+            [
+                InlineKeyboardButton(text="4️⃣", callback_data="crypto_amount_4"),
+                InlineKeyboardButton(text="5️⃣", callback_data="crypto_amount_5"),
+                InlineKeyboardButton(text="6️⃣", callback_data="crypto_amount_6"),
+            ],
+            [
+                InlineKeyboardButton(text="7️⃣", callback_data="crypto_amount_7"),
+                InlineKeyboardButton(text="8️⃣", callback_data="crypto_amount_8"),
+                InlineKeyboardButton(text="9️⃣", callback_data="crypto_amount_9"),
+            ],
+        ]
+        return InlineKeyboardMarkup(inline_keyboard=buttons)
+
+    # keyboard for main value
+    @staticmethod
+    def classic_values() -> InlineKeyboardMarkup:
+        buttons = [
+            [
+                InlineKeyboardButton(text="🇺🇸USD", callback_data="add_value_pop_USD"),
+                InlineKeyboardButton(text="🇪🇺EUR", callback_data="add_value_pop_EUR"),
+                InlineKeyboardButton(text="🇷🇺RUB", callback_data="add_value_pop_RUB"),
+                InlineKeyboardButton(text="🇦🇪AED", callback_data="add_value_pop_AED"),
+            ],
+            [
+                InlineKeyboardButton(text="🇧🇾BYN", callback_data="add_value_pop_BYN"),
+                InlineKeyboardButton(text="🇺🇦UAH", callback_data="add_value_pop_UAH"),
+                InlineKeyboardButton(text="🇰🇿KZT", callback_data="add_value_pop_KZT"),
+                InlineKeyboardButton(text="🇬🇪GEL", callback_data="add_value_pop_GEL"),
+            ],
+            [
+                InlineKeyboardButton(text="🇨🇳CNY", callback_data="add_value_pop_CNY"),
+                InlineKeyboardButton(text="🇯🇵JPY", callback_data="add_value_pop_JPY"),
+                InlineKeyboardButton(text="🇹🇷TRY", callback_data="add_value_pop_TRY"),
+                InlineKeyboardButton(text="🇬🇧GBP", callback_data="add_value_pop_GBP"),
+            ],
+            [InlineKeyboardButton(text="Остальные валюты", callback_data="otherlist_value_add")],
         ]
         return InlineKeyboardMarkup(inline_keyboard=buttons)
 
@@ -240,11 +335,11 @@ class clbk:
                 InlineKeyboardButton(text="UTC+6", callback_data="time_zone_+6"),
             ],
             [
-            [
                 InlineKeyboardButton(text="UTC-11", callback_data="time_zone_-11"),
                 InlineKeyboardButton(text="UTC-2", callback_data="time_zone_-2"),
                 InlineKeyboardButton(text="UTC+7", callback_data="time_zone_+7"),
             ],
+            [
                 InlineKeyboardButton(text="UTC-10", callback_data="time_zone_-10"),
                 InlineKeyboardButton(text="UTC-1", callback_data="time_zone_-1"),
                 InlineKeyboardButton(text="UTC+8", callback_data="time_zone_+8"),
@@ -281,94 +376,4 @@ class clbk:
             ],
         ]
 
-        return InlineKeyboardMarkup(inline_keyboard=buttons)
-
-    # keyboard for main value
-    @staticmethod
-    def classic_values() -> InlineKeyboardMarkup:
-        buttons = [
-            [
-                InlineKeyboardButton(text="🇺🇸USD", callback_data="add_value_pop_USD"),
-                InlineKeyboardButton(text="🇪🇺EUR", callback_data="add_value_pop_EUR"),
-                InlineKeyboardButton(text="🇷🇺RUB", callback_data="add_value_pop_RUB"),
-                InlineKeyboardButton(text="🇦🇪AED", callback_data="add_value_pop_AED"),
-            ],
-            [
-                InlineKeyboardButton(text="🇧🇾BYN", callback_data="add_value_pop_BYN"),
-                InlineKeyboardButton(text="🇺🇦UAH", callback_data="add_value_pop_UAH"),
-                InlineKeyboardButton(text="🇰🇿KZT", callback_data="add_value_pop_KZT"),
-                InlineKeyboardButton(text="🇬🇪GEL", callback_data="add_value_pop_GEL"),
-            ],
-            [
-                InlineKeyboardButton(text="🇨🇳CNY", callback_data="add_value_pop_CNY"),
-                InlineKeyboardButton(text="🇯🇵JPY", callback_data="add_value_pop_JPY"),
-                InlineKeyboardButton(text="🇹🇷TRY", callback_data="add_value_pop_TRY"),
-                InlineKeyboardButton(text="🇬🇧GBP", callback_data="add_value_pop_GBP"),
-            ],
-            [InlineKeyboardButton(text="Остальные валюты", callback_data="clbk_otherlist_value_add")],
-        ]
-        return InlineKeyboardMarkup(inline_keyboard=buttons)
-
-    @staticmethod
-    def change_style() -> InlineKeyboardMarkup:
-        buttons = [
-            [
-                InlineKeyboardButton(text="Символы", callback_data="style_symbols"),
-                InlineKeyboardButton(text="Названия", callback_data="style_codename"),
-            ]
-        ]
-        return InlineKeyboardMarkup(inline_keyboard=buttons)
-
-    # end settings keyboards
-
-    @staticmethod
-    def change_transaction() -> InlineKeyboardMarkup:
-        buttons = [
-            [
-                InlineKeyboardButton(text="Изменить сумму✏️", callback_data="edit_assets"),
-                InlineKeyboardButton(text="Удалить транзакцию🗑", callback_data="edit_delete"),
-            ]
-        ]
-        return InlineKeyboardMarkup(inline_keyboard=buttons)
-
-    @staticmethod
-    def choise_amount() -> InlineKeyboardMarkup:
-        buttons = [
-            [
-                InlineKeyboardButton(text="Фиаты💵", callback_data="amount_edit_fiat"),
-                InlineKeyboardButton(text="Криптовалюты🪙", callback_data="amount_edit_crypto"),
-            ]
-        ]
-        return InlineKeyboardMarkup(inline_keyboard=buttons)
-
-    @staticmethod
-    def choise_fiat_amount() -> InlineKeyboardMarkup:
-        buttons = [
-            [
-                InlineKeyboardButton(text="1", callback_data="fiat_amount_1"),
-                InlineKeyboardButton(text="2", callback_data="fiat_amount_2"),
-                InlineKeyboardButton(text="3", callback_data="fiat_amount_3"),
-            ]
-        ]
-        return InlineKeyboardMarkup(inline_keyboard=buttons)
-
-    @staticmethod
-    def choise_crypto_amount() -> InlineKeyboardMarkup:
-        buttons = [
-            [
-                InlineKeyboardButton(text="1", callback_data="crypto_amount_1"),
-                InlineKeyboardButton(text="2", callback_data="crypto_amount_2"),
-                InlineKeyboardButton(text="3", callback_data="crypto_amount_3"),
-            ],
-            [
-                InlineKeyboardButton(text="4", callback_data="crypto_amount_4"),
-                InlineKeyboardButton(text="5", callback_data="crypto_amount_5"),
-                InlineKeyboardButton(text="6", callback_data="crypto_amount_6"),
-            ],
-            [
-                InlineKeyboardButton(text="7", callback_data="crypto_amount_7"),
-                InlineKeyboardButton(text="8", callback_data="crypto_amount_8"),
-                InlineKeyboardButton(text="9", callback_data="crypto_amount_9"),
-            ]
-        ]
         return InlineKeyboardMarkup(inline_keyboard=buttons)

@@ -4,7 +4,7 @@ import database.requests as rq
 async def con_balance(tg_id: int, rates: dict):
     result = 0
     trs = await rq.Transactions.history_transactions(tg_id)
-    value = await rq.get_value(tg_id)
+    value = await rq.Get.value(tg_id)
     for tr in trs:
         op = tr.amount[0]
         amount = float(tr.amount[1:])
@@ -78,3 +78,18 @@ async def get_conversion_rate(from_currency, to_currency):
 
     except Exception as e:
         raise ValueError(f"Неизвестная ошибка: {str(e)}")
+
+
+# convert to true num
+async def convert_num(num: str, user_id: int) -> str:
+    i = num.find(".")
+    user = await rq.Get.user(user_id)
+    fiat_len, crypto_len = user.fiat_amount, user.crypto_amount
+    # if num is rates currency
+    if len(num[i + 1 :]) == 3:
+        res = "{:,.{s}f}".format(float(num), s=fiat_len)
+        return res
+    # if num is crypto currency
+    if len(num[i + 1 :]) == 9:
+        res = "{:,.{s}f}".format(float(num), s=crypto_len)
+        return res

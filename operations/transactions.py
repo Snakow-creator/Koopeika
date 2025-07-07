@@ -18,7 +18,7 @@ async def format_time(unformatted_time: datetime, timezone: str):
 
 # функция получения текста транзакции для callback и message
 async def get_history_transactions(user_id):
-    user = await rq.user_get(user_id)
+    user = await rq.Get.user(user_id)
     timezone, style = user.time_zone, user.style
     list_transactions = []
     text = "<b>История транзакций:</b>\n"
@@ -32,13 +32,13 @@ async def get_history_transactions(user_id):
         if description:
             text += (
                 f"{index}.{emoji} <b>{time}</b>"
-                f"\n<b>{amount} {oc.values_symbols[style][value]}</b>({description})"
+                f"\n<b>{amount}{oc.values_symbols[style][value]}</b>({description})"
                 f"\nid: <code>{num_id}</code>\n\n"
             )
         else:
             text += (
                 f"{index}.{emoji} <b>{time}</b>"
-                f"\n<b>{amount} {oc.values_symbols[style][value]}</b>"
+                f"\n<b>{amount}{oc.values_symbols[style][value]}</b>"
                 f"\nid: <code>{num_id}</code>\n\n"
             )
         if (index % 10) == 0:

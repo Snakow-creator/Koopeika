@@ -6,7 +6,7 @@ from apscheduler import AsyncScheduler
 
 from apscheduler.triggers.cron import CronTrigger
 from apscheduler.triggers.interval import IntervalTrigger
-from commands import callbacks, handlers
+from commands import callbacks, handlers, states
 from commands.schedulers import const_rates, const_cryptorates
 from database.models import async_main
 from loggers.antiflood import AntiFloodMiddleware
@@ -25,10 +25,10 @@ async def global_error_handler(event: ErrorEvent) -> None:
 
 async def main() -> None:
     async with AsyncScheduler() as scheduler:
-    
+
         dp.message.middleware(AntiFloodMiddleware())
         dp.message.middleware(CheckSubscribtion())
-        dp.include_routers(handlers.router, callbacks.router)
+        dp.include_routers(handlers.router, callbacks.router, states.router)
 
         await scheduler.start_in_background()
         await scheduler.add_schedule(const_rates, CronTrigger(hour=0, minute=0), id="const_rates")

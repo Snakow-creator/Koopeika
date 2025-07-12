@@ -21,7 +21,9 @@ router = Router()
 async def info_region_value(callback: CallbackQuery):
     await callback.answer("")
     action = callback.data.split("_")[-1]  # Извлекаем последние буквы callback_data
-    await callback.message.edit_text(text=oc.currency_dict[action], reply_markup=kb.clbk.back_regions())
+    await callback.message.edit_text(text=oc.currency_dict[action],
+                                     reply_markup=kb.clbk.back_regions(),
+                                     disable_web_page_preview=True)
 
 
 # выполняем функцию отвечающую на кнопку "Без комментариев"
@@ -119,6 +121,15 @@ async def check_fulllist_values(callback: CallbackQuery):
     await callback.message.edit_text("Укажите валюту:", reply_markup=kb.con.full_list_values(action))
 
 
+@router.callback_query(F.data.startswith("value_back_"))
+async def value_back(callback: CallbackQuery):
+    action = callback.data.split("_")[-1] # input last parametr in callback_data
+    text = oc.user_text.get(callback.from_user.id)
+    await callback.message.edit_text(text, reply_markup=kb.con.popular_values(action))
+
+
+
+
 # save first value, input popular and full list values
 @router.callback_query(F.data.startswith("con_value_"))
 async def con_input_value(callback: CallbackQuery, state: FSMContext):
@@ -133,7 +144,7 @@ async def con_input_value(callback: CallbackQuery, state: FSMContext):
     await callback.answer(answer_)
     oc.msg[user_id] = await callback.message.edit_text(
         f"{text}\nУкажите количество валюты, которое вы хотите конвертировать:"
-        f"\nНапишите кол-во валюты или нажмите на число ниже⬇️",
+        f"\nИли нажмите на число ниже⬇️",
         reply_markup=kb.con.input_numbers(oc.values_symbols[style][value]),
     )
 
@@ -145,15 +156,23 @@ async def con_fast_input_second_value(callback: CallbackQuery, state: FSMContext
 
     user_id = callback.from_user.id
     action = callback.data.split("_")[-1]  # get amount
-    oc.input_value[user_id] = int(action)
     value = oc.first_con_value[user_id]
     style = await rq.Get.style(user_id)
 
+    oc.input_value[user_id] = int(action)
+    oc.user_text[user_id] = (
+        f"Вы указали: <b>{int(action)}{oc.values_symbols[style][value]}</b>."
+        f"\nВыберите валюту, в которую требуется конвертировать сумму⬇️"
+    )
+    if value == "⭐️":
+        keyboard = kb.con.stars_popular_values()
+    else:
+        keyboard = kb.con.popular_values("endcon")
+
     await state.clear()
     await callback.message.edit_text(
-        f"Вы указали: <b>{int(action)} {oc.values_symbols[style][value]}</b>."
-        f"\nВыберите валюту, в которую требуется конвертировать сумму⬇️",
-        reply_markup=kb.con.popular_values("endcon"),
+        oc.user_text[user_id],
+        reply_markup=keyboard
     )
 
 
@@ -168,14 +187,14 @@ async def con_output_result(callback: CallbackQuery):
     style = await rq.Get.style(user_id)
 
     # get two values and convert it
-    f_con_value = oc.first_con_value.get(user_id)
-    con_amount = await convert_currency(amount, f_con_value, value, oc.rates)
-    converted_amount = await convert_num(con_amount, user_id)
-    in_symbol = oc.values_symbols[style][f_con_value]
-    out_symbol = oc.values_symbols[style][value]
+    first_value = oc.first_con_value.get(user_id)
+    con_amount = await convert_currency(amount, first_value, value, oc.rates)
+    converted_amount = await convert_num(con_amount, value, user_id)
+    from_symbol = oc.values_symbols[style][first_value]
+    to_symbol = oc.values_symbols[style][value]
     log.debug(f"Conversion {callback.from_user.id}")
     await callback.message.edit_text(
-        f"Конвертация: {amount:,}<b>{in_symbol}</b> = {converted_amount}<b>{out_symbol}</b>"
+        f"Конвертация: {amount:,}<b>{from_symbol}</b> = {converted_amount}<b>{to_symbol}</b>"
     )
 
 

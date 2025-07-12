@@ -16,7 +16,7 @@ async def checker_num(num: str, value: str):
     try:
         float(num)  # check num to float
 
-        max_num = oc.max_nun_values[value]
+        max_num = oc.max_num_values[value]
         if float(num) > max_num:
             raise BigNumError()
 
@@ -34,3 +34,9 @@ async def checker_con_num(num: str, value: str):
 
     except ValueError:  # if float raise ValueError
         raise BadMessageText()
+
+
+async def int_or_float(num: str):
+    if num.find(".") != -1:
+        return float(num)
+    return int(num)

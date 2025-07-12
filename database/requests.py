@@ -46,13 +46,14 @@ class Transactions:
     @staticmethod
     async def add(value: str, tg_id: int, assets: str, description: str):
         async with async_session() as session:
-            if len(description) <= 30:
+            if len(description) >= 30:
                 raise BigCommentError()
+            
+            transactions = await Transactions.history_transactions(tg_id)
             # если транзакции больше 50 - выдаем ошибку
             if len(list(transactions)) == 50:
                 raise ManyTransactionsError()
 
-            transactions = await Transactions.history_transactions(tg_id)
             stmt = await Get.user(tg_id)
             time = datetime.now(ZoneInfo("Europe/Moscow")).strftime("%Y-%m-%d %H:%M")
             session.add(

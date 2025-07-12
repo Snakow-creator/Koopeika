@@ -3,7 +3,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
 from aiogram.types import Message
 
-from operations.verification import checker_num, checker_con_num
+from operations.verification import checker_num, checker_con_num, int_or_float
 from operations.message import delete_message
 from loggers.logs import log
 from database.errors_config import (BadMessageText, BadUserIdError, ManyTransactionsError,
@@ -44,15 +44,20 @@ async def con_input_second_number(message: Message, state: FSMContext):
         value = oc.first_con_value[user_id]
         style = await rq.Get.style(user_id)
 
+        if value == "⭐️":
+            keyboard = kb.con.stars_popular_values()
+        else:
+            keyboard = kb.con.popular_values("endcon")
+
         await checker_con_num(message.text, value)
         # after checker
-        amount = float(message.text)
+        amount = await int_or_float(message.text)
         oc.input_value[user_id] = amount
 
         await message.answer(
-            f"Вы указали: <b>{amount:,} {oc.values_symbols[style][value]}</b>."
+            f"Вы указали: <b>{amount:,}{oc.values_symbols[style][value]}</b>."
             f"\nВыберите валюту, в которую требуется конвертировать сумму⬇️",
-            reply_markup=kb.con.popular_values("endcon"),
+            reply_markup=keyboard,
         )
     except BadMessageText as ex:
         await message.answer(f"{ex}")

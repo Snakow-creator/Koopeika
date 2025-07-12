@@ -50,7 +50,9 @@ async def balance_check(message: Message):
 
 @router.message(F.text == "Конвертация🏪")
 async def conversion(message: Message):
-    oc.first_con_value[message.from_user.id] = None
+    user_id = message.from_user.id
+    oc.user_text[user_id] = "Укажите валюту, в которую хотите конвертировать:"
+    oc.first_con_value[user_id] = None
     await message.answer(
         "Укажите валюту, в которую хотите конвертировать:",
         reply_markup=kb.con.popular_values("con"),
@@ -78,7 +80,9 @@ async def list_region_values(message: Message):
 # add assets
 @router.message(F.text == "Добавить активы💸")
 async def add_assets(message: Message):
-    oc.user_choise[message.from_user.id] = "change"
+    user_id = message.from_user.id
+    oc.user_choise[user_id] = "change"
+    oc.user_text[user_id] = "Укажите <b>валюту</b>:"
     await message.answer(
         "Укажите <b>валюту</b>:",
         reply_markup=kb.con.popular_values(convertation=False),

@@ -65,7 +65,7 @@ class con:
                 InlineKeyboardButton(text="🇨🇳CNY", callback_data=f"{data}_value_pop_CNY"),
                 InlineKeyboardButton(text="🇯🇵JPY", callback_data=f"{data}_value_pop_JPY"),
                 InlineKeyboardButton(text="🇹🇷TRY", callback_data=f"{data}_value_pop_TRY"),
-                InlineKeyboardButton(text="🇬🇧GBP", callback_data=f"{data}_value_pop_GBP"),
+                InlineKeyboardButton(text="⭐️", callback_data=f"{data}_value_pop_⭐️"),
             ],
             [
                 InlineKeyboardButton(text="₿BTC", callback_data=f"{data}_value_pop_BTC"),
@@ -74,6 +74,31 @@ class con:
                 InlineKeyboardButton(text="TON", callback_data=f"{data}_value_pop_TON"),
             ],
             [InlineKeyboardButton(text="Остальные валюты", callback_data=f"otherlist_value_{data}")],
+        ]
+        return InlineKeyboardMarkup(inline_keyboard=buttons)
+
+    @staticmethod
+    def stars_popular_values():
+        buttons = [
+            [
+                InlineKeyboardButton(text="🇺🇸USD", callback_data=f"endcon_value_pop_USD"),
+                InlineKeyboardButton(text="🇪🇺EUR", callback_data=f"endcon_value_pop_EUR"),
+                InlineKeyboardButton(text="🇷🇺RUB", callback_data=f"endcon_value_pop_RUB"),
+                InlineKeyboardButton(text="🇦🇪AED", callback_data=f"endcon_value_pop_AED"),
+            ],
+            [
+                InlineKeyboardButton(text="🇧🇾BYN", callback_data=f"endcon_value_pop_BYN"),
+                InlineKeyboardButton(text="🇺🇦UAH", callback_data=f"endcon_value_pop_UAH"),
+                InlineKeyboardButton(text="🇰🇿KZT", callback_data=f"endcon_value_pop_KZT"),
+                InlineKeyboardButton(text="🇬🇪GEL", callback_data=f"endcon_value_pop_GEL"),
+            ],
+            [
+                InlineKeyboardButton(text="🇨🇳CNY", callback_data=f"endcon_value_pop_CNY"),
+                InlineKeyboardButton(text="🇯🇵JPY", callback_data=f"endcon_value_pop_JPY"),
+                InlineKeyboardButton(text="🇹🇷TRY", callback_data=f"endcon_value_pop_TRY"),
+                InlineKeyboardButton(text="🇬🇧GBP", callback_data="endcon_value_pop_GBP"),
+            ],
+            [InlineKeyboardButton(text="Остальные валюты", callback_data=f"otherlist_value_endcon")],
         ]
         return InlineKeyboardMarkup(inline_keyboard=buttons)
 
@@ -153,6 +178,9 @@ class con:
                 InlineKeyboardButton(text="🇺🇿 UZS - Сум", callback_data=f"{data}_value_full_UZS"),
                 InlineKeyboardButton(text="🇿🇦 ZAR - Рэнд(ЮАР)", callback_data=f"{data}_value_full_ZAR"),
             ],
+            [
+                InlineKeyboardButton(text="Назад⬅️", callback_data=f"value_back_{data}"),
+            ]
         ]
         return InlineKeyboardMarkup(inline_keyboard=buttons)
 
@@ -207,6 +235,9 @@ class clbk:
             [
                 InlineKeyboardButton(text="💱 Популярные валюты", callback_data="info_values"),
                 InlineKeyboardButton(text="📉 Криптовалюты", callback_data="info_crypto"),
+            ],
+            [
+                InlineKeyboardButton(text="⭐️ Телеграм Звезды", callback_data="info_stars"),
             ],
         ]
         return InlineKeyboardMarkup(inline_keyboard=buttons)

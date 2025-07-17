@@ -112,6 +112,8 @@ values = {
     "SOL": "Solana",
     "TON": "The Open Network",
     "⭐️": "Telegram Stars",
+    "⭐️buy": "Telegram Stars(покупка)",
+    "⭐️sell": "Telegram Stars(продажа)",
 }
 
 
@@ -161,6 +163,8 @@ values_symbols = {
         "SOL": " SOL",
         "TON": " TON",
         "⭐️": "⭐️",
+        "⭐️buy": "⭐️",
+        "⭐️sell": "⭐️",
     },
     "codename": {
         "AUD": " AUD",
@@ -205,6 +209,8 @@ values_symbols = {
         "SOL": " SOL",
         "TON": " TON",
         "⭐️": " Stars",
+        "⭐️buy": " Stars",
+        "⭐️sell": " Stars",
     },
 }
 
@@ -250,7 +256,9 @@ max_num_values = {
     "ETH": 300,  # Эфир
     "SOL": 8000,  # Solana
     "TON": 250_000,  # Toncoin
-    "⭐️": 75_000_000,  # Telegram Stars
+    "⭐️": 75_000_000,
+    "⭐️buy": 70_000_000,  # Telegram Stars buy
+    "⭐️sell": 75_000_000,  # Telegram Stars sell
 }
 
 max_con_values = {
@@ -291,7 +299,9 @@ max_con_values = {
     "ZAR": 15_000_000_000_000_000,  # South African Rand
     "AED": 3_700_000_000_000_000,  # UAE Dirham
     "KZT": 550_000_000_000_000_000,  # Kazakhstani Tenge
-    "⭐️": 85_000_000_000_000_000,  # Telegram Stars
+    "⭐️buy": 70_000_000_000_000_000,  # Telegram Stars buy
+    "⭐️": 75_000_000_000_000_000, # Telegram Stars sell
+    "⭐️sell": 75_000_000_000_000_000,  # Telegram Stars sell
     "BTC": 15_000_000,  # Bitcoin (approx. $65,000 per BTC)
     "ETH": 450_000,  # Ethereum (approx. $2,200 per ETH)
     "SOL": 30_000_000,  # Solana (approx. $30 per SOL)
@@ -427,7 +437,7 @@ currency_dict = {
         10. <b>TRX</b> — TRON""",
     "stars": """<b>Telegram Stars(⭐️)</b>
     Данный курс является приблизительным и может отличаться с разницей до 10%.
-    Курс покупки звезд дороже чем курс продажи.
+    Курс покупки звезд <b>дороже</b> чем курс продажи.
     Курс покупки звезд считается по курсу SPLIT/FRAGMENT
     Покупка звезд на <a href="https://split.tg/">SPLIT</a>(без <b>KYC*</b>)
     Покупка звезд на <a href="https://fragment.com/stars">FRAGMENT</a>(с <b>KYC*</b>).

@@ -21,9 +21,9 @@ router = Router()
 async def info_region_value(callback: CallbackQuery):
     await callback.answer("")
     action = callback.data.split("_")[-1]  # Извлекаем последние буквы callback_data
-    await callback.message.edit_text(text=oc.currency_dict[action],
-                                     reply_markup=kb.clbk.back_regions(),
-                                     disable_web_page_preview=True)
+    await callback.message.edit_text(
+        text=oc.currency_dict[action], reply_markup=kb.clbk.back_regions(), disable_web_page_preview=True
+    )
 
 
 # выполняем функцию отвечающую на кнопку "Без комментариев"
@@ -89,10 +89,10 @@ async def check_list_transactions(callback: CallbackQuery):
 # input popular and full list values, for classic values list smaller
 @router.callback_query(F.data.startswith("add_value_"))
 async def add_transaction(callback: CallbackQuery, state: FSMContext):
-    action = callback.data.split("_")[-1]  # Извлекаем последние 3 буквы callback_data
+    value = callback.data.split("_")[-1]  # Извлекаем последние 3 буквы callback_data
     choise = oc.user_choise.get(callback.from_user.id)
 
-    value, answer_, text = await choise_value(action)
+    answer_, text = await choise_value(value)
     oc.data_value[callback.from_user.id] = value
     await callback.answer(answer_)
 
@@ -109,7 +109,7 @@ async def add_transaction(callback: CallbackQuery, state: FSMContext):
         )
 
     elif choise == "edit":
-        text = await os.default_value_edit(action, callback.from_user.id)
+        text = await os.default_value_edit(value, callback.from_user.id)
         await callback.message.edit_text(text)
 
 
@@ -123,11 +123,18 @@ async def check_fulllist_values(callback: CallbackQuery):
 
 @router.callback_query(F.data.startswith("value_back_"))
 async def value_back(callback: CallbackQuery):
-    action = callback.data.split("_")[-1] # input last parametr in callback_data
+    action = callback.data.split("_")[-1]  # input last parametr in callback_data
     text = oc.user_text.get(callback.from_user.id)
     await callback.message.edit_text(text, reply_markup=kb.con.popular_values(action))
 
 
+@router.callback_query(F.data == "con_value_pop_⭐️")
+async def stars_input_value(callback: CallbackQuery, state: FSMContext):
+    await state.set_state(Conversion.input_number)  # install state
+    await callback.answer("")
+    await callback.message.edit_text("Выберите нужное действие для звёзд⭐️"
+                                     "\nУчтите, что курс зависит от <b>направления обмена</b>",
+                                     reply_markup=kb.con.stars_choise())
 
 
 # save first value, input popular and full list values
@@ -137,8 +144,8 @@ async def con_input_value(callback: CallbackQuery, state: FSMContext):
 
     user_id = callback.from_user.id
     style = await rq.Get.style(callback.from_user.id)
-    action = callback.data.split("_")[-1]  # input last word in callback_data
-    value, answer_, text = await choise_value(action)
+    value = callback.data.split("_")[-1]  # input last word in callback_data
+    answer_, text = await choise_value(value)
     oc.first_con_value[callback.from_user.id] = value  # save first value
 
     await callback.answer(answer_)
@@ -164,16 +171,13 @@ async def con_fast_input_second_value(callback: CallbackQuery, state: FSMContext
         f"Вы указали: <b>{int(action)}{oc.values_symbols[style][value]}</b>."
         f"\nВыберите валюту, в которую требуется конвертировать сумму⬇️"
     )
-    if value == "⭐️":
+    if value[0:2] == "⭐️":
         keyboard = kb.con.stars_popular_values()
     else:
         keyboard = kb.con.popular_values("endcon")
 
     await state.clear()
-    await callback.message.edit_text(
-        oc.user_text[user_id],
-        reply_markup=keyboard
-    )
+    await callback.message.edit_text(oc.user_text[user_id], reply_markup=keyboard)
 
 
 # input second value and output result

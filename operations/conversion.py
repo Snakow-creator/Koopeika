@@ -1,5 +1,7 @@
 import database.requests as rq
 
+from loggers.logs import log
+
 
 async def con_balance(tg_id: int, rates: dict):
     result = 0
@@ -31,8 +33,8 @@ async def convert_to_usdt(amount, to_currency, rates):
 
 async def convert_currency(amount, from_currency, to_currency, rates):
     amount = float(amount)
-    crypto_bool_to = (to_currency not in rates) and (to_currency != "⭐️")
-    crypto_bool_from = (from_currency not in rates) and (from_currency != "⭐️")
+    crypto_bool_to = (to_currency not in rates) and (to_currency[0:2] != "⭐️")
+    crypto_bool_from = (from_currency not in rates) and (from_currency[0:2] != "⭐️")
     # if input assets are the same as the output assets
     if from_currency == to_currency:
         return amount
@@ -46,8 +48,8 @@ async def convert_currency(amount, from_currency, to_currency, rates):
     # Fiat -> Crypto
     elif (from_currency in rates) and (crypto_bool_to):
         amount_in_usdt = await convert_to_usdt(amount, from_currency, rates)
-        enter_amount = amount_in_usdt / await get_conversion_rate("USDT", to_currency)
-        return format(enter_amount, ".9f")
+        result = amount_in_usdt / await get_conversion_rate(to_currency, "USDT")
+        return format(result, ".9f")
 
     # Crypto -> Fiat
     elif (crypto_bool_from) and (to_currency in rates):
@@ -55,24 +57,38 @@ async def convert_currency(amount, from_currency, to_currency, rates):
         to_rate = rates[to_currency]
         crypto_to_usdt = await get_conversion_rate(from_currency, "USDT")  # цена крипты
         amount_in_usdt = crypto_to_usdt * amount
-        enter_amount = (amount_in_usdt / to_rate) * usd_rate
-        return format(enter_amount, ".3f")
+        result = (amount_in_usdt / to_rate) * usd_rate
+        return format(result, ".3f")
 
     # Crypto -> Crypto
     elif (crypto_bool_from) and (crypto_bool_to):
         crypto_to_usdt = await get_conversion_rate(from_currency, "USDT")
         amount_in_usdt = crypto_to_usdt * amount
         usdt_in_crypto = await get_conversion_rate("USDT", to_currency)
-        enter_amount = amount_in_usdt / usdt_in_crypto
-        return format(enter_amount, ".9f")
+        result = amount_in_usdt / usdt_in_crypto
+        return format(result, ".9f")
 
     # Stars -> Fiat
-    elif (from_currency == "⭐️") and (to_currency in rates):
-        usd_amount = amount * 0.013
+    elif (from_currency[0:2] == "⭐️") and (to_currency in rates):
+        if from_currency[-3:] == 'buy':
+            stars_currency = 0.015
+        elif from_currency[-4:] == 'sell' or from_currency == "⭐️":
+            stars_currency = 0.013
+        usd_amount = amount * stars_currency
         usd_rate = rates["USD"]
         to_rate = rates[to_currency]
-        enter_amount = (usd_amount / to_rate) * usd_rate
-        return format(enter_amount, ".3f")
+        result = (usd_amount / to_rate) * usd_rate
+        return format(result, ".3f")
+
+    # Stars -> Crypto
+    elif (from_currency[0:2] == "⭐️") and (crypto_bool_to):
+        if from_currency[-3:] == 'buy':
+            stars_currency = 0.015
+        elif from_currency[-4:] == 'sell' or from_currency == "⭐️":
+            stars_currency = 0.013
+        usd_amount = stars_currency * amount
+        result = usd_amount / await get_conversion_rate(to_currency, "USDT")
+        return format(result, ".9f")
 
     # Fiat -> USD -> Stars
     elif (from_currency in rates) and (to_currency == "⭐️"):
@@ -100,7 +116,8 @@ async def get_conversion_rate(from_currency, to_currency):
         return await get_conversion_rate(to_currency, from_currency)
 
     except Exception as ex:
-        raise ValueError(f"Неизвестная ошибка: {ex}")
+        log.error(f"Неизвестная ошибка: {ex}")
+
 
 
 # convert to true num

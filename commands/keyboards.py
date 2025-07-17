@@ -96,7 +96,7 @@ class con:
                 InlineKeyboardButton(text="🇨🇳CNY", callback_data=f"endcon_value_pop_CNY"),
                 InlineKeyboardButton(text="🇯🇵JPY", callback_data=f"endcon_value_pop_JPY"),
                 InlineKeyboardButton(text="🇹🇷TRY", callback_data=f"endcon_value_pop_TRY"),
-                InlineKeyboardButton(text="🇬🇧GBP", callback_data="endcon_value_pop_GBP"),
+                InlineKeyboardButton(text="TON", callback_data="endcon_value_pop_TON"),
             ],
             [InlineKeyboardButton(text="Остальные валюты", callback_data=f"otherlist_value_endcon")],
         ]
@@ -180,6 +180,16 @@ class con:
             ],
             [
                 InlineKeyboardButton(text="Назад⬅️", callback_data=f"value_back_{data}"),
+            ],
+        ]
+        return InlineKeyboardMarkup(inline_keyboard=buttons)
+
+    @staticmethod
+    def stars_choise():
+        buttons = [
+            [
+                InlineKeyboardButton(text="⭐️(покупка)", callback_data="con_value_pop_⭐️buy"),
+                InlineKeyboardButton(text="⭐️(продажа)", callback_data="con_value_pop_⭐️sell"),
             ]
         ]
         return InlineKeyboardMarkup(inline_keyboard=buttons)

@@ -6,8 +6,13 @@ from aiogram.types import Message
 from operations.verification import checker_num, checker_con_num, int_or_float
 from operations.message import delete_message
 from loggers.logs import log
-from database.errors_config import (BadMessageText, BadUserIdError, ManyTransactionsError,
-                                    BigNumError, BigCommentError)
+from database.errors_config import (
+    BadMessageText,
+    BadUserIdError,
+    ManyTransactionsError,
+    BigNumError,
+    BigCommentError,
+)
 
 import commands.keyboards as kb
 import database.online_config as oc

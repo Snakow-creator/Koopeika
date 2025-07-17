@@ -1,6 +1,7 @@
 from aiogram import F, Router
 from aiogram.types import Message
 from aiogram.filters import CommandStart
+from time import sleep
 
 from operations.transactions import get_history_transactions
 from operations.conversion import con_balance
@@ -21,7 +22,16 @@ async def start_bot(message: Message):
     await message.delete()
     await rq.add_user(message.from_user.id)
     oc.msg[message.from_user.id] = await message.answer(
-        "Привет, будущий экономист, ты по адресу - я помогу тебе с расчетами😃", reply_markup=kb.main
+        "Здраствуйте!"
+        "\nЗдесь вы можете конвертировать криптовалюты, звезды и обычные деньги,"
+        "\nВы также можете учитывать активы и расходы в различных валютах — итоговые значения будут автоматически пересчитаны в единую валюту!"
+        "\n\nДля начала работы, нажмите кнопку ниже👇",
+        reply_markup=kb.main,
+    )
+    sleep(2)
+    await message.answer(
+        "Также ты можешь подписаться на наш канал по Копейке и другим ботам, там выходят обновления и анонсы.",
+        reply_markup=kb.sub_channel,
     )
 
 

@@ -27,7 +27,6 @@ async def main() -> None:
     async with AsyncScheduler() as scheduler:
 
         dp.message.middleware(AntiFloodMiddleware())
-        dp.message.middleware(CheckSubscribtion())
         dp.include_routers(handlers.router, callbacks.router, states.router)
 
         await scheduler.start_in_background()

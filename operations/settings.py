@@ -51,6 +51,8 @@ async def settings_user_info(callback):
         f"Стиль валют: <b>{oc.styles_keys[user.style]}</b>\n"
         f"Кол-во чисел после запятой(фиат): <b>{user.fiat_amount}</b>\n"
         f"Кол-во чисел после запятой(крипта): <b>{user.crypto_amount}</b>"
+        f"\n\nТакже можете <a href='https://t.me/obotov'>подписаться</a> на наш канал и узнавать первыми о новых нововедениях бота.",
+        disable_web_page_preview=True,
     )
 
 

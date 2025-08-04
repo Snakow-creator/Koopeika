@@ -17,32 +17,33 @@ async def change_time_zone(callback=None):
 
 
 async def time_zone_edit(action, tg_id):
-    await rq.Edit.time_zone(action, tg_id)
+    await rq.Edit.time_zone(tg_id, action)
     text = f"Вы изменили часовой пояс на <b>UTC{action}</b>"
     return text
 
 
 async def default_value_edit(action, tg_id):
-    await rq.Edit.value(action, tg_id)
+    await rq.Edit.value(tg_id, action)
     text = f"Вы изменили валюту на <b>{action}</b>({oc.values[action]})"
     return text
 
 
 async def fiat_amount_edit(action, tg_id):
-    await rq.Edit.fiat_amount(action, tg_id)
+    await rq.Edit.fiat_amount(tg_id, action)
     text = f"Вы изменили кол-во чисел после запятой(фиат) на <b>{action}</b>"
     return text
 
 
 async def crypto_amount_edit(action: int, tg_id):
-    await rq.Edit.crypto_amount(action, tg_id)
+    await rq.Edit.crypto_amount(tg_id, action)
     text = f"Вы изменили кол-во чисел после запятой(криптовалюта) на <b>{action}</b>"
     return text
 
 
 async def settings_user_info(callback):
     await callback.answer("")
-    user = await rq.Get.user(callback.from_user.id)
+    user_obj = await rq.SelectUser.load(callback.from_user.id)
+    user = user_obj.user
     await callback.message.edit_text(
         f"Информация:\n"
         f"➖➖➖➖➖\n"

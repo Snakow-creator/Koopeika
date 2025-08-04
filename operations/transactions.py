@@ -18,13 +18,15 @@ async def format_time(unformatted_time: datetime, timezone: str):
 
 # функция получения текста транзакции для callback и message
 async def get_history_transactions(user_id):
-    user = await rq.Get.user(user_id)
+    user_obj = await rq.SelectUser.load(user_id)
+    user = user_obj.user
     timezone, style = user.time_zone, user.style
     list_transactions = []
     text = "<b>История транзакций:</b>\n"
-    text_transactions = await rq.Transactions.history_transactions(user_id)
+    transactions_obj = await rq.Transactions.load(user_id)
+    transactions = transactions_obj.transactions
 
-    for index, info in enumerate(text_transactions, start=1):
+    for index, info in enumerate(transactions, start=1):
         time = await format_time(info.time, timezone)
         num_id, amount, value = info.id, info.amount, info.value
         description = info.description

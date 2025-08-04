@@ -20,7 +20,7 @@ router = Router()
 @router.message(CommandStart())
 async def start_bot(message: Message):
     await message.delete()
-    await rq.add_user(message.from_user.id)
+    await rq.SelectUser.load(message.from_user.id)
     oc.msg[message.from_user.id] = await message.answer(
         "Здраствуйте!"
         "\nЗдесь вы можете конвертировать криптовалюты, звезды и обычные деньги,"
@@ -47,7 +47,8 @@ async def back_button(message: Message):
 async def balance_check(message: Message):
     user_id = message.from_user.id
     amount = await con_balance(user_id, oc.rates)
-    user = await rq.Get.user(user_id)
+    user_obj = await rq.SelectUser.load(user_id)
+    user = user_obj.user
     value = user.value
     style = user.style
     value = oc.values_symbols[style][value]

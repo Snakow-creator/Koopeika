@@ -32,7 +32,8 @@ async def add_transaction_without_comment(callback: CallbackQuery, state: FSMCon
     try:
         value = oc.data_value.get(callback.from_user.id, 0)
         assets = oc.user_choise.get(callback.from_user.id, 0)
-        await rq.Transactions.add(value, callback.from_user.id, assets, description="")
+        transaction = await rq.Transactions.load(callback.from_user.id)
+        await transaction.add(value, assets, "")
         await callback.message.edit_text("Функция произведена успешно.")
     except ManyTransactionsError as ex:
         await callback.message.edit_text(str(ex))
@@ -132,9 +133,10 @@ async def value_back(callback: CallbackQuery):
 async def stars_input_value(callback: CallbackQuery, state: FSMContext):
     await state.set_state(Conversion.input_number)  # install state
     await callback.answer("")
-    await callback.message.edit_text("Выберите нужное действие для звёзд⭐️"
-                                     "\nУчтите, что курс зависит от <b>направления обмена</b>",
-                                     reply_markup=kb.con.stars_choise())
+    await callback.message.edit_text(
+        "Выберите нужное действие для звёзд⭐️" "\nУчтите, что курс зависит от <b>направления обмена</b>",
+        reply_markup=kb.con.stars_choise(),
+    )
 
 
 # save first value, input popular and full list values
@@ -143,7 +145,8 @@ async def con_input_value(callback: CallbackQuery, state: FSMContext):
     await state.set_state(Conversion.input_number)  # install state
 
     user_id = callback.from_user.id
-    style = await rq.Get.style(callback.from_user.id)
+    user_obj = await rq.SelectUser.load(callback.from_user.id)
+    user = user_obj.user
     value = callback.data.split("_")[-1]  # input last word in callback_data
     answer_, text = await choise_value(value)
     oc.first_con_value[callback.from_user.id] = value  # save first value
@@ -152,7 +155,7 @@ async def con_input_value(callback: CallbackQuery, state: FSMContext):
     oc.msg[user_id] = await callback.message.edit_text(
         f"{text}\nУкажите количество валюты, которое вы хотите конвертировать:"
         f"\nИли нажмите на число ниже⬇️",
-        reply_markup=kb.con.input_numbers(oc.values_symbols[style][value]),
+        reply_markup=kb.con.input_numbers(oc.values_symbols[user.style][value]),
     )
 
 
@@ -164,11 +167,12 @@ async def con_fast_input_second_value(callback: CallbackQuery, state: FSMContext
     user_id = callback.from_user.id
     action = callback.data.split("_")[-1]  # get amount
     value = oc.first_con_value[user_id]
-    style = await rq.Get.style(user_id)
+    user_obj = await rq.SelectUser.load(user_id)
+    user = user_obj.user
 
     oc.input_value[user_id] = int(action)
     oc.user_text[user_id] = (
-        f"Вы указали: <b>{int(action)}{oc.values_symbols[style][value]}</b>."
+        f"Вы указали: <b>{int(action)}{oc.values_symbols[user.style][value]}</b>."
         f"\nВыберите валюту, в которую требуется конвертировать сумму⬇️"
     )
     if value[0:2] == "⭐️":
@@ -188,14 +192,15 @@ async def con_output_result(callback: CallbackQuery):
     user_id = callback.from_user.id
     value = callback.data.split("_")[-1]  # input last word in callback_data
     amount = oc.input_value.get(user_id)
-    style = await rq.Get.style(user_id)
+    user_obj = await rq.SelectUser.load(user_id)
+    user = user_obj.user
 
     # get two values and convert it
     first_value = oc.first_con_value.get(user_id)
     con_amount = await convert_currency(amount, first_value, value, oc.rates)
     converted_amount = await convert_num(con_amount, value, user_id)
-    from_symbol = oc.values_symbols[style][first_value]
-    to_symbol = oc.values_symbols[style][value]
+    from_symbol = oc.values_symbols[user.style][first_value]
+    to_symbol = oc.values_symbols[user.style][value]
     log.debug(f"Conversion {callback.from_user.id}")
     await callback.message.edit_text(
         f"Конвертация: {amount:,}<b>{from_symbol}</b> = {converted_amount}<b>{to_symbol}</b>"
@@ -259,11 +264,11 @@ async def settings_change_style(callback: CallbackQuery):
     user_id = callback.from_user.id
 
     if action == "symbols":
-        await rq.Edit.style("symbols", user_id)
+        await rq.Edit.style(user_id, "symbols")
         await callback.message.edit_text("Вы сменили стиль на <b>Символы</b>")
 
     elif action == "codename":
-        await rq.Edit.style("codename", user_id)
+        await rq.Edit.style(user_id, "codename")
         await callback.message.edit_text("Вы сменили стиль на <b>Названия</b>")
     log.debug(f"""User {user_id} change style to {action}""")
 

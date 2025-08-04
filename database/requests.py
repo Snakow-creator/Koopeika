@@ -2,176 +2,135 @@ from datetime import datetime
 from zoneinfo import ZoneInfo
 
 from sqlalchemy import desc, select
-
+from sqlalchemy.ext.asyncio import AsyncSession
 from operations.verification import checker_id
-from database.models import Transaction, User, async_session
+from database.models import Transaction, User, async_session, AsyncAttrs
 from database.errors_config import ManyTransactionsError, BigCommentError
 from loggers.logs import log
 
 
-# добавление юзера в бд(команда старт)
-async def add_user(tg_id: int):
-    async with async_session() as session:
-        user = await session.scalar(select(User).where(User.tg_id == tg_id))
+class SelectUser:
+    def __init__(self, tg_id: int, user: User, session: AsyncSession):
+        self.id = tg_id
+        self.user = user
+        self.session = session
 
-        if not user:
-            session.add(User(tg_id=tg_id, full_balance=0, time_zone="+3", value="USD", style="symbols"))
-            log.debug(f"Add user {tg_id}")
-            await session.commit()
-
-
-# класс операций связанных с балансом
-class Balance:
-
-    @staticmethod
-    async def edit(tg_id, amount) -> None:
+    @classmethod
+    async def load(cls, tg_id):
         async with async_session() as session:
-            stmt = await session.scalar(select(User).where(User.tg_id == tg_id))
-            stmt.full_balance = amount
-            log.debug(f"Edit balance {tg_id}")
-            await session.commit()
+            user = await session.scalar(select(User).where(User.tg_id == tg_id))
+            if not user:
+                user = User(tg_id=tg_id, full_balance=0, time_zone="+3", value="USD", style="symbols")
+                session.add(user)
+                log.debug(f"Add user {tg_id}")
+                await session.commit()
+            return cls(tg_id, user, session)
 
 
-# класс операций связанных с транзакциями
-class Transactions:
 
-    # отправление запроса для получения транзакций юзера
-    @staticmethod
-    async def history_transactions(tg_id: int):
+class Transactions(SelectUser):
+    def __init__(self, tg_id, user: User, transactions: Transaction, session: AsyncSession):
+        self.id = tg_id
+        self.user = user
+        self.transactions = transactions
+        self.session = session
+
+    @classmethod
+    async def load(cls, tg_id):
         async with async_session() as session:
-            return await session.scalars(
+            user = await session.scalar(select(User).where(User.tg_id == tg_id))
+            transactions = await session.scalars(
                 select(Transaction).where(Transaction.user_id == tg_id).order_by(desc(Transaction.id))
             )
+            log.debug("get user and transaction db data")
+            return cls(tg_id, user, transactions, session)
 
-    @staticmethod
-    async def add(value: str, tg_id: int, assets: str, description: str):
-        async with async_session() as session:
-            if len(description) >= 30:
-                raise BigCommentError()
-            
-            transactions = await Transactions.history_transactions(tg_id)
-            # если транзакции больше 50 - выдаем ошибку
-            if len(list(transactions)) == 50:
-                raise ManyTransactionsError()
+    async def add(self, value, assets, description):
+        if len(description) >= 30:
+            raise BigCommentError()
 
-            stmt = await Get.user(tg_id)
-            time = datetime.now(ZoneInfo("Europe/Moscow")).strftime("%Y-%m-%d %H:%M")
-            session.add(
-                Transaction(
-                    value=value,
-                    user=stmt,
-                    amount=assets,
-                    time=time,
-                    description=description,
-                )
+        # если транзакции больше 50 - выдаем ошибку
+        if len(list(self.transactions)) == 50:
+            raise ManyTransactionsError()
+
+        time = datetime.now(ZoneInfo("Europe/Moscow")).strftime("%Y-%m-%d %H:%M")
+        self.session.add(
+            Transaction(
+                value=value,
+                user=self.user,
+                amount=assets,
+                time=time,
+                description=description,
             )
+        )
+        log.debug(f"Add transaction {self.user.id}")
+        await self.session.commit()
 
+    async def edit(self, value: float, num_id: int):
+        transaction = await self.session.scalar(select(Transaction).where(Transaction.id == num_id))
+        op = transaction.amount[0]  # get operation amount + or -
+        transaction.amount = op + f"{str(value)}"
+        await checker_id(num_id, self.transactions)
+        log.debug(f"Edit transaction {num_id}")
+        await self.session.commit()
+
+    async def delete(self, num_id: int):
+        transaction = await self.session.scalar(select(Transaction).where(Transaction.id == num_id))
+        await checker_id(num_id, self.transactions)
+        transaction.user_id = f"{transaction.user_id}*"
+        log.debug(f"Delete transaction {num_id}")
+        await self.session.commit()
+
+
+# operation static class with balance
+class Balance:
+    @staticmethod
+    async def change(tg_id, amount):
+        async with async_session() as session:
+            user = await session.scalar(select(User).where(User.tg_id == tg_id))
+            user.full_balance = amount
+            log.debug(f"Edit balance {user.id}")
             await session.commit()
 
-    @staticmethod
-    async def edit(value: float, tg_id: int, num_id: int):
-        async with async_session() as session:
-            transaction = await session.scalar(select(Transaction).where(Transaction.id == num_id))
-            op = transaction.amount[0]
-            transaction.amount = op + f"{str(value)}"
-            user_transaction = await Transactions.history_transactions(tg_id)
-            await checker_id(num_id, user_transaction)
 
-            await session.commit()
-
-    @staticmethod
-    async def delete(tg_id: int, num_id: int):
-        async with async_session() as session:
-            transaction = await session.scalar(select(Transaction).where(Transaction.id == num_id))
-            user_transaction = await Transactions.history_transactions(tg_id)
-            await checker_id(num_id, user_transaction)
-            transaction.user_id = f"{transaction.user_id}*"
-
-            await session.commit()
-
-
-class Get:
-    @staticmethod
-    async def user(tg_id: int):
-        async with async_session() as session:
-            user = await session.scalar(select(User).where(User.tg_id == tg_id))
-
-            return user
-
-    @staticmethod
-    async def value(tg_id):
-        async with async_session() as session:
-            user = await session.scalar(select(User).where(User.tg_id == tg_id))
-
-            return user.value
-
-    @staticmethod
-    async def style(tg_id):
-        async with async_session() as session:
-            user = await session.scalar(select(User).where(User.tg_id == tg_id))
-
-            return user.style
-
-    @staticmethod
-    async def time_zone(tg_id: int):
-        async with async_session() as session:
-            user = await async_session().scalar(select(User).where(User.tg_id == tg_id))
-
-            return user.time_zone
-
-    @staticmethod
-    async def fiat_amount(tg_id):
-        async with async_session() as session:
-            user = await session.scalar(select(User).where(User.tg_id == tg_id))
-
-            return user.fiat_amount
-
-    @staticmethod
-    async def crypto_amount(tg_id):
-        async with async_session() as session:
-            user = await session.scalar(select(User).where(User.tg_id == tg_id))
-
-            return user.crypto_amount
-
-
+# operation static class with user
 class Edit:
     @staticmethod
-    async def time_zone(action, tg_id):
+    async def time_zone(tg_id, action):
         async with async_session() as session:
             user = await session.scalar(select(User).where(User.tg_id == tg_id))
             user.time_zone = action
-
+            log.debug(f"time_zone changed on {action}")
             await session.commit()
 
-    # операции с валютой по умолчанию
     @staticmethod
-    async def value(action, tg_id):
+    async def value(tg_id, action):
         async with async_session() as session:
             user = await session.scalar(select(User).where(User.tg_id == tg_id))
             user.value = action
-
+            log.debug(f"value changed on {action}")
             await session.commit()
 
     @staticmethod
-    async def style(style, tg_id):
+    async def style(tg_id, style):
         async with async_session() as session:
             user = await session.scalar(select(User).where(User.tg_id == tg_id))
             user.style = style
-
+            log.debug(f"style changed on {style}")
             await session.commit()
 
     @staticmethod
-    async def fiat_amount(amount, tg_id):
+    async def fiat_amount(tg_id, amount):
         async with async_session() as session:
             user = await session.scalar(select(User).where(User.tg_id == tg_id))
             user.fiat_amount = amount
-
+            log.debug(f"fiat_amount changed on {amount}")
             await session.commit()
 
     @staticmethod
-    async def crypto_amount(amount, tg_id):
+    async def crypto_amount(tg_id, amount):
         async with async_session() as session:
             user = await session.scalar(select(User).where(User.tg_id == tg_id))
             user.crypto_amount = amount
-
+            log.debug(f"crypto_amount changed on {amount}")
             await session.commit()

@@ -44,10 +44,10 @@ class Conversion(StatesGroup):
 async def con_input_second_number(message: Message, state: FSMContext):
     try:
         await delete_message(message)
-
         user_id = message.from_user.id
         value = oc.first_con_value[user_id]
-        style = await rq.Get.style(user_id)
+        user_obj = await rq.SelectUser.load(user_id)
+        user = user_obj.user
 
         if value == "⭐️":
             keyboard = kb.con.stars_popular_values()
@@ -60,7 +60,7 @@ async def con_input_second_number(message: Message, state: FSMContext):
         oc.input_value[user_id] = amount
 
         await message.answer(
-            f"Вы указали: <b>{amount:,}{oc.values_symbols[style][value]}</b>."
+            f"Вы указали: <b>{amount:,}{oc.values_symbols[user.style][value]}</b>."
             f"\nВыберите валюту, в которую требуется конвертировать сумму⬇️",
             reply_markup=keyboard,
         )
@@ -117,7 +117,8 @@ async def add_transaction(message: Message, state: FSMContext):
         value = oc.data_value.get(message.from_user.id, 0)
         assets = oc.user_choise.get(message.from_user.id, 0)
         description = str(message.text)
-        await rq.Transactions.add(value, message.from_user.id, assets, description)
+        transaction = await rq.Transactions.load(message.from_user.id)
+        await transaction.add(value, assets, description)
         await message.answer("Функция произведена успешно✅")
         log.debug(f"Add assets {message.from_user.id}")
     except ManyTransactionsError as ex:
@@ -132,8 +133,9 @@ async def add_transaction(message: Message, state: FSMContext):
 @router.message(Transaction.edit)
 async def transaction_edit(message: Message, state: FSMContext):
     try:
-        value = await rq.Get.value(message.from_user.id)
-        await checker_num(message.text, value)
+        user_obj = await rq.SelectUser.load(message.from_user.id)
+        user = user_obj.user
+        await checker_num(message.text, user.value)
         oc.user_choise[message.from_user.id] = float(message.text)
         await state.set_state(Transaction.edit_end)
         await message.answer("Напишите айди транзакции:")
@@ -150,7 +152,8 @@ async def transaction_edit_result(message: Message, state: FSMContext):
     try:
         num_id = int(message.text)
         amount = oc.user_choise.get(message.from_user.id)
-        await rq.Transactions.edit(value=amount, tg_id=message.from_user.id, num_id=num_id)
+        transaction = await rq.Transactions.load(message.from_user.id)
+        await transaction.edit(value=amount, num_id=num_id)
         await message.answer("Транзакция успешно изменена!")
         log.debug(f"Edit transaction {message.from_user.id}")
     except BadUserIdError as ex:
@@ -164,7 +167,8 @@ async def transaction_delete(message: Message, state: FSMContext):
     try:
         num_id = int(message.text)
         await state.clear()
-        await rq.Transactions.delete(tg_id=message.from_user.id, num_id=num_id)
+        transaction = await rq.Transactions.load(message.from_user.id)
+        await transaction.delete(num_id)
         await message.answer("Транзакция успешно удалена!")
         log.debug(f"Delete transaction {message.from_user.id}")
     except BadUserIdError as ex:

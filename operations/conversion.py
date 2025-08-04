@@ -5,8 +5,9 @@ from loggers.logs import log
 
 async def con_balance(tg_id: int, rates: dict):
     result = 0
-    trs = await rq.Transactions.history_transactions(tg_id)
-    value = await rq.Get.value(tg_id)
+    trs_obj = await rq.Transactions.load(tg_id)
+    trs = trs_obj.transactions
+    value = trs_obj.user.value
     for tr in trs:
         op = tr.amount[0]
         amount = float(tr.amount[1:])
@@ -18,7 +19,7 @@ async def con_balance(tg_id: int, rates: dict):
             result -= float(res)
 
     result = "{:,.2f}".format(result)
-    await rq.Balance.edit(tg_id, result)
+    await rq.Balance.change(tg_id, result)
     return result
 
 
@@ -37,7 +38,7 @@ async def convert_currency(amount, from_currency, to_currency, rates):
     crypto_bool_from = (from_currency not in rates) and (from_currency[0:2] != "⭐️")
     # if input assets are the same as the output assets
     if from_currency == to_currency:
-        return amount
+        return str(amount)
 
     # Fiat -> Fiat
     if (from_currency in rates) and (to_currency in rates):
@@ -70,9 +71,9 @@ async def convert_currency(amount, from_currency, to_currency, rates):
 
     # Stars -> Fiat
     elif (from_currency[0:2] == "⭐️") and (to_currency in rates):
-        if from_currency[-3:] == 'buy':
+        if from_currency[-3:] == "buy":
             stars_currency = 0.015
-        elif from_currency[-4:] == 'sell' or from_currency == "⭐️":
+        elif from_currency[-4:] == "sell" or from_currency == "⭐️":
             stars_currency = 0.013
         usd_amount = amount * stars_currency
         usd_rate = rates["USD"]
@@ -82,9 +83,9 @@ async def convert_currency(amount, from_currency, to_currency, rates):
 
     # Stars -> Crypto
     elif (from_currency[0:2] == "⭐️") and (crypto_bool_to):
-        if from_currency[-3:] == 'buy':
+        if from_currency[-3:] == "buy":
             stars_currency = 0.015
-        elif from_currency[-4:] == 'sell' or from_currency == "⭐️":
+        elif from_currency[-4:] == "sell" or from_currency == "⭐️":
             stars_currency = 0.013
         usd_amount = stars_currency * amount
         result = usd_amount / await get_conversion_rate(to_currency, "USDT")
@@ -119,11 +120,11 @@ async def get_conversion_rate(from_currency, to_currency):
         log.error(f"Неизвестная ошибка: {ex}")
 
 
-
 # convert to true num
 async def convert_num(num: str, to_value: str, user_id: int) -> str:
     i = num.find(".")
-    user = await rq.Get.user(user_id)
+    user_obj = await rq.SelectUser.load(user_id)
+    user = user_obj.user
     fiat_len, crypto_len = user.fiat_amount, user.crypto_amount
 
     # if num is int converted to float or num is stars
@@ -131,11 +132,11 @@ async def convert_num(num: str, to_value: str, user_id: int) -> str:
         res = "{:,}".format(int(float(num)))
         return res
     # if num is rates currency
-    elif len(num[(i + 1):]) == 3:
+    elif len(num[(i + 1) :]) == 3:
         res = "{:,.{s}f}".format(float(num), s=fiat_len)
         return res
     # if num is crypto currency
-    elif len(num[(i + 1):]) == 9:
+    elif len(num[(i + 1) :]) == 9:
         res = "{:,.{s}f}".format(float(num), s=crypto_len)
         return res
 

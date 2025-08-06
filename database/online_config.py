@@ -5,13 +5,26 @@ rates = get_exchange_rates()
 cryptorates = get_cryptorates()
 
 
-# переменные юзера, используются для активов
-user_choise = {}
-user_check = {}
-user_text = {}
-data_value = {}
-input_value = {}
-first_con_value = {}
+class Profile:
+    _storage = {}
+
+    def __init__(self, user_id: int):
+        self.tg_id: int = user_id
+        self.choise: str = None
+        self.check: str = None
+        self.text: str = None
+        self.value: str = None
+        self.amount: int = None
+        self.con_value: str = None
+
+        Profile._storage[self.tg_id] = self
+
+    @classmethod
+    def get(cls, user_id):
+        user = cls._storage.get(user_id)
+        if not user:
+            user = cls(user_id)
+        return user
 
 # использование переменных в транзакциях
 data_user_transactions = {}
@@ -300,7 +313,7 @@ max_con_values = {
     "AED": 3_700_000_000_000_000,  # UAE Dirham
     "KZT": 550_000_000_000_000_000,  # Kazakhstani Tenge
     "⭐️buy": 70_000_000_000_000_000,  # Telegram Stars buy
-    "⭐️": 75_000_000_000_000_000, # Telegram Stars sell
+    "⭐️": 75_000_000_000_000_000,  # Telegram Stars sell
     "⭐️sell": 75_000_000_000_000_000,  # Telegram Stars sell
     "BTC": 15_000_000,  # Bitcoin (approx. $65,000 per BTC)
     "ETH": 450_000,  # Ethereum (approx. $2,200 per ETH)
@@ -441,5 +454,5 @@ currency_dict = {
     Курс покупки звезд считается по курсу SPLIT/FRAGMENT
     Покупка звезд на <a href="https://split.tg/">SPLIT</a>(без <b>KYC*</b>)
     Покупка звезд на <a href="https://fragment.com/stars">FRAGMENT</a>(с <b>KYC*</b>).
-    *KYC - Верификация по документам"""
+    *KYC - Верификация по документам""",
 }

@@ -6,12 +6,12 @@ from time import sleep
 from operations.transactions import get_history_transactions
 from operations.conversion import con_balance
 from loggers.logs import log
+from database.online_config import Profile
 
 # все функции, которые начинаются с rq или kb, берутся с этих файлов
 import commands.keyboards as kb
 import database.requests as rq
 import database.online_config as oc
-import operations.settings as os
 
 router = Router()
 
@@ -62,8 +62,9 @@ async def balance_check(message: Message):
 @router.message(F.text == "Конвертация🏪")
 async def conversion(message: Message):
     user_id = message.from_user.id
-    oc.user_text[user_id] = "Укажите валюту, в которую хотите конвертировать:"
-    oc.first_con_value[user_id] = None
+    profile = Profile.get(user_id)
+    profile.text = "Укажите валюту, в которую хотите конвертировать:"
+    profile.con_value = None
     await message.answer(
         "Укажите валюту, в которую хотите конвертировать:",
         reply_markup=kb.con.popular_values("con"),
@@ -91,9 +92,9 @@ async def list_region_values(message: Message):
 # add assets
 @router.message(F.text == "Добавить активы💸")
 async def add_assets(message: Message):
-    user_id = message.from_user.id
-    oc.user_choise[user_id] = "change"
-    oc.user_text[user_id] = "Укажите <b>валюту</b>:"
+    profile = Profile.get(message.from_user.id)
+    profile.choise = "change"
+    profile.text = "Укажите <b>валюту</b>:"
     await message.answer(
         "Укажите <b>валюту</b>:",
         reply_markup=kb.con.popular_values(convertation=False),
@@ -103,7 +104,9 @@ async def add_assets(message: Message):
 # deprive assets
 @router.message(F.text == "Указать траты📉")
 async def deprive_assets(message: Message):
-    oc.user_choise[message.from_user.id] = "deprive"
+    profile = Profile.get(message.from_user.id)
+    profile.choise = "deprive"
+    profile.text = "Укажите <b>валюту</b>:"
     await message.answer(
         "Укажите <b>валюту</b>:",
         reply_markup=kb.con.popular_values(convertation=False),

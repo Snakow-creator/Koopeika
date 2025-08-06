@@ -3,6 +3,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
 from aiogram.types import Message
 
+from database.online_config import Profile
 from operations.verification import checker_num, checker_con_num, int_or_float
 from operations.message import delete_message
 from loggers.logs import log
@@ -45,7 +46,8 @@ async def con_input_second_number(message: Message, state: FSMContext):
     try:
         await delete_message(message)
         user_id = message.from_user.id
-        value = oc.first_con_value[user_id]
+        profile = Profile.get(user_id)
+        value = profile.con_value
         user_obj = await rq.SelectUser.load(user_id)
         user = user_obj.user
 
@@ -57,7 +59,7 @@ async def con_input_second_number(message: Message, state: FSMContext):
         await checker_con_num(message.text, value)
         # after checker
         amount = await int_or_float(message.text)
-        oc.input_value[user_id] = amount
+        profile.amount = amount
 
         await message.answer(
             f"Вы указали: <b>{amount:,}{oc.values_symbols[user.style][value]}</b>."
@@ -75,9 +77,9 @@ async def con_input_second_number(message: Message, state: FSMContext):
 @router.message(Balance.add)
 async def add_assets(message: Message, state: FSMContext):
     try:
-        value = oc.data_value.get(message.from_user.id, 0)
-        await checker_num(message.text, value)
-        oc.user_choise[message.from_user.id] = "+" + message.text
+        profile = Profile.get(message.from_user.id)
+        await checker_num(message.text, profile.value)
+        profile.choise = "+" + message.text
         await state.set_state(Balance.assets_end)
         await message.answer(
             "Введите комментарий(максимум <b>30</b> символов):",
@@ -95,9 +97,9 @@ async def add_assets(message: Message, state: FSMContext):
 @router.message(Balance.deprive)
 async def add_losses(message: Message, state: FSMContext):
     try:
-        value = oc.data_value.get(message.from_user.id, 0)
-        await checker_num(message.text, value)
-        oc.user_choise[message.from_user.id] = "-" + message.text
+        profile = Profile.get(message.from_user.id)
+        await checker_num(message.text, profile.value)
+        profile.choise = "-" + message.text
         await state.set_state(Balance.assets_end)
         await message.answer(
             "Введите комментарий(максимум <b>30</b> символов):",
@@ -114,13 +116,15 @@ async def add_losses(message: Message, state: FSMContext):
 @router.message(Balance.assets_end)
 async def add_transaction(message: Message, state: FSMContext):
     try:
-        value = oc.data_value.get(message.from_user.id, 0)
-        assets = oc.user_choise.get(message.from_user.id, 0)
+        profile = Profile.get(message.from_user.id)
+        assets = profile.choise
         description = str(message.text)
         transaction = await rq.Transactions.load(message.from_user.id)
-        await transaction.add(value, assets, description)
+
+        await transaction.add(profile.value, assets, description)
         await message.answer("Функция произведена успешно✅")
         log.debug(f"Add assets {message.from_user.id}")
+
     except ManyTransactionsError as ex:
         await message.answer(f"{ex}")
     except BigCommentError as ex:
@@ -133,12 +137,14 @@ async def add_transaction(message: Message, state: FSMContext):
 @router.message(Transaction.edit)
 async def transaction_edit(message: Message, state: FSMContext):
     try:
+        profile = Profile.get(message.from_user.id)
         user_obj = await rq.SelectUser.load(message.from_user.id)
         user = user_obj.user
         await checker_num(message.text, user.value)
-        oc.user_choise[message.from_user.id] = float(message.text)
+        profile.choise = float(message.text)
         await state.set_state(Transaction.edit_end)
         await message.answer("Напишите айди транзакции:")
+
     except BadMessageText as ex:
         await message.answer(f"{ex}")
         await state.clear()
@@ -150,8 +156,9 @@ async def transaction_edit(message: Message, state: FSMContext):
 @router.message(Transaction.edit_end)
 async def transaction_edit_result(message: Message, state: FSMContext):
     try:
+        profile = Profile.get(message.from_user.id)
         num_id = int(message.text)
-        amount = oc.user_choise.get(message.from_user.id)
+        amount = profile.choise
         transaction = await rq.Transactions.load(message.from_user.id)
         await transaction.edit(value=amount, num_id=num_id)
         await message.answer("Транзакция успешно изменена!")

@@ -4,6 +4,7 @@ from aiogram.types import CallbackQuery
 
 from commands.states import Conversion, Transaction, Balance
 from database.errors_config import ManyTransactionsError
+from database.online_config import Profile
 from operations.choise_value import choise_value
 from operations.conversion import convert_currency, convert_num
 from operations.transactions import get_history_transactions
@@ -24,21 +25,6 @@ async def info_region_value(callback: CallbackQuery):
     await callback.message.edit_text(
         text=oc.currency_dict[action], reply_markup=kb.clbk.back_regions(), disable_web_page_preview=True
     )
-
-
-# выполняем функцию отвечающую на кнопку "Без комментариев"
-@router.callback_query(F.data == "without_comment")
-async def add_transaction_without_comment(callback: CallbackQuery, state: FSMContext):
-    try:
-        value = oc.data_value.get(callback.from_user.id, 0)
-        assets = oc.user_choise.get(callback.from_user.id, 0)
-        transaction = await rq.Transactions.load(callback.from_user.id)
-        await transaction.add(value, assets, "")
-        await callback.message.edit_text("Функция произведена успешно.")
-    except ManyTransactionsError as ex:
-        await callback.message.edit_text(str(ex))
-    finally:
-        await state.clear()
 
 
 @router.callback_query(F.data == "back_reg")
@@ -91,13 +77,15 @@ async def check_list_transactions(callback: CallbackQuery):
 @router.callback_query(F.data.startswith("add_value_"))
 async def add_transaction(callback: CallbackQuery, state: FSMContext):
     value = callback.data.split("_")[-1]  # Извлекаем последние 3 буквы callback_data
-    choise = oc.user_choise.get(callback.from_user.id)
-
+    profile = Profile.get(callback.from_user.id)
+    choise = profile.choise
+    log.debug(f"choise: {choise}")
     answer_, text = await choise_value(value)
-    oc.data_value[callback.from_user.id] = value
+    profile.value = value
     await callback.answer(answer_)
 
     if choise == "change":
+        log.debug("Change value")
         await state.set_state(Balance.add)
         await callback.message.edit_text(
             text + "\nУкажите ваши накопления в сообщения(дробные числа указываются точкой):"
@@ -114,6 +102,20 @@ async def add_transaction(callback: CallbackQuery, state: FSMContext):
         await callback.message.edit_text(text)
 
 
+# выполняем функцию отвечающую на кнопку "Без комментариев"
+@router.callback_query(F.data == "without_comment")
+async def add_transaction_without_comment(callback: CallbackQuery, state: FSMContext):
+    try:
+        profile = Profile.get(callback.from_user.id)
+        transaction = await rq.Transactions.load(callback.from_user.id)
+        await transaction.add(profile.value, profile.choise, "")
+        await callback.message.edit_text("Функция произведена успешно.")
+    except ManyTransactionsError as ex:
+        await callback.message.edit_text(str(ex))
+    finally:
+        await state.clear()
+
+
 @router.callback_query(F.data.startswith("otherlist_value_"))
 async def check_fulllist_values(callback: CallbackQuery):
     await callback.answer("")
@@ -125,7 +127,7 @@ async def check_fulllist_values(callback: CallbackQuery):
 @router.callback_query(F.data.startswith("value_back_"))
 async def value_back(callback: CallbackQuery):
     action = callback.data.split("_")[-1]  # input last parametr in callback_data
-    text = oc.user_text.get(callback.from_user.id)
+    text = Profile.get(callback.from_user.id).text
     await callback.message.edit_text(text, reply_markup=kb.con.popular_values(action))
 
 
@@ -143,13 +145,13 @@ async def stars_input_value(callback: CallbackQuery, state: FSMContext):
 @router.callback_query(F.data.startswith("con_value_"))
 async def con_input_value(callback: CallbackQuery, state: FSMContext):
     await state.set_state(Conversion.input_number)  # install state
-
+    profile = Profile.get(callback.from_user.id)
     user_id = callback.from_user.id
     user_obj = await rq.SelectUser.load(callback.from_user.id)
     user = user_obj.user
     value = callback.data.split("_")[-1]  # input last word in callback_data
     answer_, text = await choise_value(value)
-    oc.first_con_value[callback.from_user.id] = value  # save first value
+    profile.con_value = value  # save first value
 
     await callback.answer(answer_)
     oc.msg[user_id] = await callback.message.edit_text(
@@ -163,15 +165,14 @@ async def con_input_value(callback: CallbackQuery, state: FSMContext):
 @router.callback_query(F.data.startswith("con_input_amount_"))
 async def con_fast_input_second_value(callback: CallbackQuery, state: FSMContext):
     await callback.answer("")
-
     user_id = callback.from_user.id
+    profile = Profile.get(user_id)
     action = callback.data.split("_")[-1]  # get amount
-    value = oc.first_con_value[user_id]
+    value = profile.con_value
     user_obj = await rq.SelectUser.load(user_id)
     user = user_obj.user
-
-    oc.input_value[user_id] = int(action)
-    oc.user_text[user_id] = (
+    profile.amount = int(action)
+    profile.text = (
         f"Вы указали: <b>{int(action)}{oc.values_symbols[user.style][value]}</b>."
         f"\nВыберите валюту, в которую требуется конвертировать сумму⬇️"
     )
@@ -181,7 +182,7 @@ async def con_fast_input_second_value(callback: CallbackQuery, state: FSMContext
         keyboard = kb.con.popular_values("endcon")
 
     await state.clear()
-    await callback.message.edit_text(oc.user_text[user_id], reply_markup=keyboard)
+    await callback.message.edit_text(profile.text, reply_markup=keyboard)
 
 
 # input second value and output result
@@ -190,13 +191,14 @@ async def con_output_result(callback: CallbackQuery):
     await callback.answer("")
     # получаем необходимые данные
     user_id = callback.from_user.id
+    profile = Profile.get(user_id)
     value = callback.data.split("_")[-1]  # input last word in callback_data
-    amount = oc.input_value.get(user_id)
+    amount = profile.amount
     user_obj = await rq.SelectUser.load(user_id)
     user = user_obj.user
 
     # get two values and convert it
-    first_value = oc.first_con_value.get(user_id)
+    first_value = profile.con_value
     con_amount = await convert_currency(amount, first_value, value, oc.rates)
     converted_amount = await convert_num(con_amount, value, user_id)
     from_symbol = oc.values_symbols[user.style][first_value]
@@ -228,7 +230,7 @@ async def settings_action(callback: CallbackQuery):
         await os.change_time_zone(callback)
 
     elif action == "value":
-        oc.user_choise[callback.from_user.id] = "edit"
+        Profile.get(callback.from_user.id).choise = "edit"
         await callback.message.edit_text(
             "Выберите валюту по умолчанию:", reply_markup=kb.set.classic_values()
         )

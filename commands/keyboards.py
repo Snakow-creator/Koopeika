@@ -218,7 +218,7 @@ class clbk:
     # beautiful keyboard for transactions, change page
     @staticmethod
     def transactions(tg_id) -> InlineKeyboardMarkup:
-        page = oc.data_page[tg_id]
+        page = oc.Profile.get(tg_id).transactions_page
         buttons = [
             [
                 InlineKeyboardButton(text="⬅️", callback_data="transaction_left"),

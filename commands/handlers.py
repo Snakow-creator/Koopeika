@@ -3,8 +3,8 @@ from aiogram.types import Message
 from aiogram.filters import CommandStart
 from time import sleep
 
-from operations.transactions import get_history_transactions
-from operations.conversion import con_balance
+from operations.transactions import ListTransactions
+from operations.conversion import Convert_Balance
 from loggers.logs import log
 from database.online_config import Profile
 
@@ -46,7 +46,7 @@ async def back_button(message: Message):
 @router.message(F.text == "Баланс💲")
 async def balance_check(message: Message):
     user_id = message.from_user.id
-    amount = await con_balance(user_id, oc.rates)
+    con = await Convert_Balance.con_balance(user_id, oc.rates)
     user_obj = await rq.SelectUser.load(user_id)
     user = user_obj.user
     value = user.value
@@ -54,7 +54,7 @@ async def balance_check(message: Message):
     value = oc.values_symbols[style][value]
     log.debug(f"Check balance {message.from_user.id}")
     await message.answer(
-        f"Ваш баланс активов – <b>{amount}{value}</b>\n"
+        f"Ваш баланс активов – <b>{con.balance}{value}</b>\n"
         f"Добавить актив можно, нажав на кнопку в клавиатуре бота."
     )
 
@@ -125,11 +125,11 @@ async def transactions_keyboard(message: Message):
 # обработка запросов в базу данных для получения красивой картинки транзакций
 @router.message(F.text == "История транзакций📋")
 async def check_history_transactions(message: Message):
-    oc.data_page[message.from_user.id] = 1
-    list_transactions = await get_history_transactions(message.from_user.id)
-    if len(list_transactions) > 1:
+    list_transactions = await ListTransactions.load(message.from_user.id)
+    transactions = list_transactions.get()
+    if  list_transactions.pages() > 1:
         await message.answer(
-            list_transactions[0],
+            transactions,
             reply_markup=kb.clbk.transactions(message.from_user.id),
         )
     else:

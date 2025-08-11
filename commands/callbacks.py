@@ -2,12 +2,11 @@ from aiogram import F, Router
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery
 
-from commands.states import Conversion, Transaction, Balance
-from database.errors_config import ManyTransactionsError
+from commands.states import Con, Transaction, Balance
+from database.errors_config import ManyTransactionsError, PageError
 from database.online_config import Profile
 from operations.choise_value import choise_value
-from operations.conversion import convert_currency, convert_num
-from operations.transactions import get_history_transactions
+from operations.conversion import Conversion
 from loggers.logs import log
 
 import commands.keyboards as kb
@@ -18,6 +17,7 @@ import operations.settings as os
 router = Router()
 
 
+# info regions
 @router.callback_query(F.data.startswith("info_"))
 async def info_region_value(callback: CallbackQuery):
     await callback.answer("")
@@ -27,6 +27,7 @@ async def info_region_value(callback: CallbackQuery):
     )
 
 
+# back button to choise regions
 @router.callback_query(F.data == "back_reg")
 async def back_region(callback: CallbackQuery):
     await callback.answer("Вы вернулись обратно.)")
@@ -36,41 +37,38 @@ async def back_region(callback: CallbackQuery):
     )
 
 
-# обработка кнопок с сообщения транзакций
-# все условия связанные с return, пропускают функцию
+# paginator transactions
 @router.callback_query(F.data.startswith("transaction_"))
 async def check_list_transactions(callback: CallbackQuery):
-    await callback.answer("")
+    try:
+        await callback.answer('')
+        user_id = callback.from_user.id
+        profile = oc.Profile.get(user_id)
+        list_transactions = profile.transactions
+        page = profile.transactions_page
+        action = callback.data.split("_")[-1]
 
-    list_transactions = await get_history_transactions(
-        callback.from_user.id
-    )  # берем функцию с файла transactions
-    page = oc.data_page.get(callback.from_user.id, 0)
-    user_transactions = oc.data_user_transactions.get(callback.from_user.id)
-    action = callback.data.split("_")[-1]
-
-    if action == "left":
-        if page > 1:
+        if action == "left":
             page -= 1
-        else:
+
+        elif action == "page":  # добавляем кнопку страницы и делаем ее некликабельной
             return
 
-    elif action == "page":  # добавляем кнопку страницы и делаем ее некликабельной
-        return
-
-    elif action == "right":
-        if page < (len(user_transactions)):
+        elif action == "right":
             page += 1
-        else:
-            return
 
-    oc.data_page[callback.from_user.id] = page
+        transactions = await list_transactions.page(page)
+        profile.transactions_page = page
 
-    await callback.message.edit_text(
-        list_transactions[page - 1],
-        reply_markup=kb.clbk.transactions(callback.from_user.id),
-    )
-    log.debug(f"Check history transactions {callback.from_user.id}, page: {page}")
+        await callback.message.edit_text(
+            transactions,
+            reply_markup=kb.clbk.transactions(user_id),
+        )
+        log.debug(f"Check history transactions {user_id}, page: {page}")
+
+    except PageError:
+        log.debug(f"except PageError by {user_id}")
+
 
 
 # input popular and full list values, for classic values list smaller
@@ -133,7 +131,7 @@ async def value_back(callback: CallbackQuery):
 
 @router.callback_query(F.data == "con_value_pop_⭐️")
 async def stars_input_value(callback: CallbackQuery, state: FSMContext):
-    await state.set_state(Conversion.input_number)  # install state
+    await state.set_state(Con.input_number)  # install state
     await callback.answer("")
     await callback.message.edit_text(
         "Выберите нужное действие для звёзд⭐️" "\nУчтите, что курс зависит от <b>направления обмена</b>",
@@ -144,7 +142,7 @@ async def stars_input_value(callback: CallbackQuery, state: FSMContext):
 # save first value, input popular and full list values
 @router.callback_query(F.data.startswith("con_value_"))
 async def con_input_value(callback: CallbackQuery, state: FSMContext):
-    await state.set_state(Conversion.input_number)  # install state
+    await state.set_state(Con.input_number)  # install state
     profile = Profile.get(callback.from_user.id)
     user_id = callback.from_user.id
     user_obj = await rq.SelectUser.load(callback.from_user.id)
@@ -199,13 +197,12 @@ async def con_output_result(callback: CallbackQuery):
 
     # get two values and convert it
     first_value = profile.con_value
-    con_amount = await convert_currency(amount, first_value, value, oc.rates)
-    converted_amount = await convert_num(con_amount, value, user_id)
+    result = await Conversion.conversion(user_id, first_value, value, amount, oc.rates)
     from_symbol = oc.values_symbols[user.style][first_value]
     to_symbol = oc.values_symbols[user.style][value]
     log.debug(f"Conversion {callback.from_user.id}")
     await callback.message.edit_text(
-        f"Конвертация: {amount:,}<b>{from_symbol}</b> = {converted_amount}<b>{to_symbol}</b>"
+        result.text(from_symbol, to_symbol)
     )
 
 

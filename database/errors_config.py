@@ -1,7 +1,7 @@
 # create errors
 
 
-class BadUserIdError(Exception):
+class BadUserIdError(BaseException):
     def __init__(self):
         message = "Ошибка, айди транзакции не найдено, или оно было удалено."
         super().__init__(message)
@@ -13,19 +13,25 @@ class BadMessageText(TypeError):
         super().__init__(message)
 
 
-class ManyTransactionsError(Exception):
+class ManyTransactionsError(BaseException):
     def __init__(self):
         message = "У вас слишком много активов и трат(50), удалите лишнюю и добавьте другую"
         super().__init__(message)
 
 
-class BigNumError(Exception):
+class BigNumError(BaseException):
     def __init__(self):
         message = "Вы ввели слишком много активов, введите число поменьше."
         super().__init__(message)
 
 
-class BigCommentError(Exception):
+class BigCommentError(BaseException):
     def __init__(self):
         message = "Вы ввели слишком длинный комментарий, введите его поменьше."
+        super().__init__(message)
+
+
+class PageError(BaseException):
+    def __init__(self):
+        message = "Такой страницы не существует"
         super().__init__(message)

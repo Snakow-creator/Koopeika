@@ -36,12 +36,12 @@ class Transaction(StatesGroup):
     delete = State()
 
 
-class Conversion(StatesGroup):
+class Con(StatesGroup):
     input_number = State()
 
 
 # Conversion
-@router.message(Conversion.input_number)
+@router.message(Con.input_number)
 async def con_input_second_number(message: Message, state: FSMContext):
     try:
         await delete_message(message)

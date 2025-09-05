@@ -2,6 +2,8 @@ import commands.keyboards as kb
 import database.online_config as oc
 import database.requests as rq
 
+from datetime import datetime
+
 
 async def change_time_zone(callback=None):
     await callback.answer("")
@@ -40,21 +42,30 @@ async def crypto_amount_edit(action: int, tg_id):
     return text
 
 
-async def settings_user_info(callback):
-    await callback.answer("")
-    user_obj = await rq.SelectUser.load(callback.from_user.id)
+async def crypto_max_coins_edit(action: int, tg_id: int):
+    await rq.Edit.crypto_max_coins(tg_id, action)
+    text = f"Вы изменили список валют на <b>{oc.crypto_max_coins[action]}</b>"
+    return text
+
+
+async def settings_user_info(premium, user_id):
+    user_obj = await rq.SelectUser.load(user_id)
     user = user_obj.user
-    await callback.message.edit_text(
+    text = (
         f"Информация:\n"
         f"➖➖➖➖➖\n"
         f"Часовой пояс: <b>{user.time_zone}</b>\n"
         f"Установленная валюта: <b>{user.value}</b>\n"
         f"Стиль валют: <b>{oc.styles_keys[user.style]}</b>\n"
         f"Кол-во чисел после запятой(фиат): <b>{user.fiat_amount}</b>\n"
-        f"Кол-во чисел после запятой(крипта): <b>{user.crypto_amount}</b>"
-        f"\n\nТакже можете <a href='https://t.me/obotov'>подписаться</a> на наш канал и узнавать первыми о новых нововедениях бота.",
-        disable_web_page_preview=True,
+        f"Кол-во чисел после запятой(крипта): <b>{user.crypto_amount}</b>\n"
     )
+    if premium:
+        premium_time = datetime.strftime(user.premium_until, "%d.%m.%Y %H:%M")
+        text += (f"Список валют: <b>{oc.crypto_max_coins[user.crypto_max_coins]}</b>\n"
+                f"Премиум действует до <b>{premium_time}</b>\n")
+    text += f"\nТакже можете <a href='https://t.me/obotov'>подписаться</a> на наш канал и узнавать первыми о новых нововедениях бота."
+    return text
 
 
 async def clbk_style(callback):

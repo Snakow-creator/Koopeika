@@ -12,11 +12,13 @@ async def checker_id(delete_id, user_transactions):
     raise BadUserIdError()
 
 
-async def checker_num(num: str, value: str):
+async def checker_num(num: str, value: str, premium_user):
     try:
         float(num)  # check num to float
 
-        max_num = oc.max_num_values[value]
+        max_num = oc.max_num_values.get(value, 1_000_000_000)
+        if premium_user:
+            max_num = oc.max_num_values_premium.get(value, 1_000_000_000_000)
         if float(num) > max_num:
             raise BigNumError()
 
@@ -24,11 +26,14 @@ async def checker_num(num: str, value: str):
         raise BadMessageText()
 
 
-async def checker_con_num(num: str, value: str):
+async def checker_con_num(num: str, value: str, premium_user):
     try:
         float(num)  # check num to float
 
-        max_num = oc.max_con_values[value]
+        max_num = oc.max_con_values.get(value, 1_000_000_000_000)
+        if premium_user:
+            max_num = oc.max_con_values_premium.get(value, 1_000_000_000_000)
+
         if float(num) > max_num:
             raise BigNumError()
 

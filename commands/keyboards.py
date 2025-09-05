@@ -1,4 +1,8 @@
-from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, KeyboardButton, ReplyKeyboardMarkup
+from aiogram.utils.keyboard import InlineKeyboardBuilder
+from aiogram.types import (InlineKeyboardButton, InlineKeyboardMarkup,
+                            KeyboardButton, ReplyKeyboardMarkup)
+
+from loggers.logs import log
 
 import database.online_config as oc
 
@@ -43,7 +47,7 @@ sub_channel = InlineKeyboardMarkup(
 class con:
     # keyboard for popular values
     @staticmethod
-    def popular_values(convertation=False) -> InlineKeyboardMarkup:
+    def popular_values(premium, convertation=False) -> InlineKeyboardMarkup:
         if convertation:
             data = convertation
         else:
@@ -73,8 +77,16 @@ class con:
                 InlineKeyboardButton(text="SOL", callback_data=f"{data}_value_pop_SOL"),
                 InlineKeyboardButton(text="TON", callback_data=f"{data}_value_pop_TON"),
             ],
-            [InlineKeyboardButton(text="Остальные валюты", callback_data=f"otherlist_value_{data}")],
         ]
+        if premium:
+            buttons.append([
+                InlineKeyboardButton(text="Криптовалюты", callback_data=f"cryptolist_value_{data}"),
+                InlineKeyboardButton(text="Остальные валюты", callback_data=f"otherlist_value_{data}"),
+            ])
+        else:
+            buttons.append([
+                InlineKeyboardButton(text="Остальные валюты", callback_data=f"otherlist_value_{data}"),
+            ])
         return InlineKeyboardMarkup(inline_keyboard=buttons)
 
     @staticmethod
@@ -185,6 +197,23 @@ class con:
         return InlineKeyboardMarkup(inline_keyboard=buttons)
 
     @staticmethod
+    def crypto_values(max_coins, convertation=False) -> InlineKeyboardMarkup:
+        builder = InlineKeyboardBuilder()
+        cryptolist = list(oc.cryptorates.keys())
+        if convertation:
+            data = convertation
+        else:
+            data = "add"
+
+        for value in cryptolist[:max_coins]:
+            log.debug(value)
+            builder.button(text=f"{value[:3]}", callback_data=f"{data}_value_cpt_{value}")
+
+        builder.button(text="Назад⬅️", callback_data=f"value_back_{data}")
+        builder.adjust(4)
+        return builder.as_markup()
+
+    @staticmethod
     def stars_choise():
         buttons = [
             [
@@ -263,7 +292,7 @@ class clbk:
 class set:
     # settings keyboard, and his keyboards
     @staticmethod
-    def settings() -> InlineKeyboardMarkup:
+    def settings(premium) -> InlineKeyboardMarkup:
         buttons = [
             [
                 InlineKeyboardButton(text="Изменить часовой пояс🕰", callback_data="settings_edit_timezone"),
@@ -273,8 +302,13 @@ class set:
                 InlineKeyboardButton(text="Стиль валют", callback_data="settings_edit_style"),
                 InlineKeyboardButton(text="Кол-во десятичных знаков", callback_data="settings_edit_nums"),
             ],
-            [InlineKeyboardButton(text="Информацияℹ️", callback_data="settings_edit_info")],
         ]
+        if premium:
+            buttons.append([InlineKeyboardButton(text="Список криптовалют₿", callback_data="settings_edit_cryptomaxcoins")])
+        row = [InlineKeyboardButton(text="Koopeika Premium⭐️", callback_data="settings_edit_premium"),
+               InlineKeyboardButton(text="Информацияℹ️", callback_data="settings_edit_info")]
+        buttons.append(row)
+
         return InlineKeyboardMarkup(inline_keyboard=buttons)
 
     @staticmethod
@@ -418,3 +452,35 @@ class set:
         ]
 
         return InlineKeyboardMarkup(inline_keyboard=buttons)
+
+    @staticmethod
+    def crypto_max_coins():
+        buttons = [
+                [InlineKeyboardButton(text="Стандартный(16 валют)", callback_data="crypto_max_16")],
+                [InlineKeyboardButton(text="Большой(28 валют)", callback_data="crypto_max_28")],
+                [InlineKeyboardButton(text="Огромный(36 валют)", callback_data="crypto_max_36")],
+                [InlineKeyboardButton(text="Монструозный(48 валют)", callback_data="crypto_max_48")],
+        ]
+        return InlineKeyboardMarkup(inline_keyboard=buttons)
+
+
+class pay:
+    @staticmethod
+    def premium_buttons():
+        builder = InlineKeyboardBuilder()
+        builder.button(text="1 месяц", callback_data="pay_premium_month_stars")
+        builder.button(text="Условия пользования", callback_data="terms_of_service")
+        builder.adjust(1)
+        return builder.as_markup()
+
+    @staticmethod
+    def terms_of_services_back():
+        builder = InlineKeyboardBuilder()
+        builder.button(text="Назад⬅️", callback_data="settings_edit_premium")
+        return builder.as_markup()
+
+    @staticmethod
+    def premium():
+        builder = InlineKeyboardBuilder()
+        builder.button(text="Подписаться на месяц(1⭐️)", pay=True)
+        return builder.as_markup()

@@ -3,6 +3,7 @@ import database.online_config as oc
 
 from loggers.logs import log
 
+
 class Conversion:
     def __init__(self, from_amount, to_amount):
         self.from_amount = from_amount
@@ -40,7 +41,7 @@ class Conversion:
         elif (from_currency in rates) and (crypto_bool_to):
             log.debug("Fiat -> Crypto")
             amount_in_usdt = await cls._convert_to_usdt(amount, from_currency, rates)
-            result = amount_in_usdt / await cls._get_conversion_rate(to_currency, "USDT")
+            result = amount_in_usdt / await cls._get_conversion_rate(to_currency)
             converted_amount = format(result, ".9f")
 
         # Crypto -> Fiat
@@ -48,7 +49,7 @@ class Conversion:
             log.debug("Crypto -> Fiat")
             usd_rate = rates["USD"]
             to_rate = rates[to_currency]
-            crypto_to_usdt = await cls._get_conversion_rate(from_currency, "USDT")  # цена крипты
+            crypto_to_usdt = await cls._get_conversion_rate(from_currency)  # цена крипты
             amount_in_usdt = crypto_to_usdt * amount
             result = (amount_in_usdt / to_rate) * usd_rate
             converted_amount = format(result, ".3f")
@@ -56,9 +57,9 @@ class Conversion:
         # Crypto -> Crypto
         elif (crypto_bool_from) and (crypto_bool_to):
             log.debug("Crypto -> Crypto")
-            crypto_to_usdt = await cls._get_conversion_rate(from_currency, "USDT")
+            crypto_to_usdt = await cls._get_conversion_rate(from_currency)
             amount_in_usdt = crypto_to_usdt * amount
-            usdt_in_crypto = await cls._get_conversion_rate("USDT", to_currency)
+            usdt_in_crypto = await cls._get_conversion_rate(to_currency)
             result = amount_in_usdt / usdt_in_crypto
             converted_amount = format(result, ".9f")
 
@@ -83,7 +84,7 @@ class Conversion:
             elif from_currency[-4:] == "sell" or from_currency == "⭐️":
                 stars_currency = 0.013
             usd_amount = stars_currency * amount
-            result = usd_amount / await cls._get_conversion_rate(to_currency, "USDT")
+            result = usd_amount / await cls._get_conversion_rate(to_currency)
             converted_amount = format(result, ".9f")
 
         # Fiat -> USD -> Stars
@@ -97,7 +98,7 @@ class Conversion:
         # Crypto -> Stars
         elif (crypto_bool_from) and (to_currency == "⭐️"):
             log.debug("Crypto -> Stars")
-            crypto_to_usdt = await cls._get_conversion_rate(from_currency, "USDT")
+            crypto_to_usdt = await cls._get_conversion_rate(from_currency)
             amount_in_usdt = crypto_to_usdt * amount
             converted_amount = format(amount_in_usdt / 0.015, ".9f")
 
@@ -112,17 +113,10 @@ class Conversion:
         return (amount / from_rate) * to_rate
 
     @classmethod
-    async def _get_conversion_rate(cls, from_currency, to_currency):
+    async def _get_conversion_rate(cls, pair):
         from database.online_config import cryptorates
 
-        try:
-            pair = f"{from_currency}{to_currency}".upper()
-            if pair in cryptorates.keys():
-                return cryptorates[pair]
-            return await cls._get_conversion_rate(to_currency, from_currency)
-
-        except Exception as ex:
-            log.error(f"Неизвестная ошибка: {ex}")
+        return cryptorates[pair]
 
     # convert to true num
     @classmethod

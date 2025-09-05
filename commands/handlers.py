@@ -1,6 +1,6 @@
 from aiogram import F, Router
 from aiogram.types import Message
-from aiogram.filters import CommandStart
+from aiogram.filters import CommandStart, Command, CommandObject
 from time import sleep
 
 from operations.transactions import ListTransactions
@@ -35,6 +35,20 @@ async def start_bot(message: Message):
     )
 
 
+@router.message(Command("info"))
+async def info(message: Message):
+    await message.answer(oc.terms_of_service)
+
+
+@router.message(Command("give_premium"))
+async def give_premium(message: Message, command: CommandObject):
+    if message.from_user.id == 1429466470:
+        user_id = command.args
+        log.debug(f"Give premium to {user_id}")
+        await rq.Edit.month_premium_extend(user_id)
+        await message.answer(f"Вы дали премиум на месяц пользователю: <b><code>{user_id}</code></b>")
+
+
 # Обработка кнопок
 # кнопка назад
 @router.message(F.text == "Назад⬅️")
@@ -62,12 +76,14 @@ async def balance_check(message: Message):
 @router.message(F.text == "Конвертация🏪")
 async def conversion(message: Message):
     user_id = message.from_user.id
+    user_obj = await rq.SelectUser.load(user_id)
+    premium = await user_obj.premium()
     profile = Profile.get(user_id)
     profile.text = "Укажите валюту, в которую хотите конвертировать:"
     profile.con_value = None
     await message.answer(
         "Укажите валюту, в которую хотите конвертировать:",
-        reply_markup=kb.con.popular_values("con"),
+        reply_markup=kb.con.popular_values(premium, "con"),
     )
 
 
@@ -92,24 +108,28 @@ async def list_region_values(message: Message):
 # add assets
 @router.message(F.text == "Добавить активы💸")
 async def add_assets(message: Message):
+    user_obj = await rq.SelectUser.load(message.from_user.id)
+    premium = await user_obj.premium()
     profile = Profile.get(message.from_user.id)
     profile.choise = "change"
     profile.text = "Укажите <b>валюту</b>:"
     await message.answer(
         "Укажите <b>валюту</b>:",
-        reply_markup=kb.con.popular_values(convertation=False),
+        reply_markup=kb.con.popular_values(premium, convertation=False),
     )
 
 
 # deprive assets
 @router.message(F.text == "Указать траты📉")
 async def deprive_assets(message: Message):
+    user_obj = await rq.SelectUser.load(message.from_user.id)
+    premium = await user_obj.premium()
     profile = Profile.get(message.from_user.id)
     profile.choise = "deprive"
     profile.text = "Укажите <b>валюту</b>:"
     await message.answer(
         "Укажите <b>валюту</b>:",
-        reply_markup=kb.con.popular_values(convertation=False),
+        reply_markup=kb.con.popular_values(premium, convertation=False),
     )
 
 
@@ -127,13 +147,13 @@ async def transactions_keyboard(message: Message):
 async def check_history_transactions(message: Message):
     list_transactions = await ListTransactions.load(message.from_user.id)
     transactions = list_transactions.get()
-    if  list_transactions.pages() > 1:
+    if list_transactions.pages() > 1:
         await message.answer(
             transactions,
             reply_markup=kb.clbk.transactions(message.from_user.id),
         )
     else:
-        await message.answer(list_transactions[0])
+        await message.answer(transactions)
     log.debug(f"Check history transactions {message.from_user.id}")
 
 
@@ -144,4 +164,6 @@ async def edit_transaction(message: Message):
 
 @router.message(F.text == "Настройки⚙️")
 async def settings(message: Message):
-    await message.answer("Выбери параметр который хочешь изменить.", reply_markup=kb.set.settings())
+    user_obj = await rq.SelectUser.load(message.from_user.id)
+    premium_user = await user_obj.premium()
+    await message.answer("Выбери параметр который хочешь изменить.", reply_markup=kb.set.settings(premium_user))

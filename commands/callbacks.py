@@ -3,6 +3,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery
 
 from commands.states import Con, Transaction, Balance
+from commands.payments import month_payment_stars
 from database.errors_config import ManyTransactionsError, PageError
 from database.online_config import Profile
 from operations.choise_value import choise_value
@@ -27,6 +28,12 @@ async def info_region_value(callback: CallbackQuery):
     )
 
 
+@router.callback_query(F.data == "terms_of_service")
+async def terms_of_service(callback: CallbackQuery):
+    await callback.answer("")
+    await callback.message.edit_text(oc.terms_of_service, reply_markup=kb.pay.terms_of_services_back())
+
+
 # back button to choise regions
 @router.callback_query(F.data == "back_reg")
 async def back_region(callback: CallbackQuery):
@@ -41,7 +48,7 @@ async def back_region(callback: CallbackQuery):
 @router.callback_query(F.data.startswith("transaction_"))
 async def check_list_transactions(callback: CallbackQuery):
     try:
-        await callback.answer('')
+        await callback.answer("")
         user_id = callback.from_user.id
         profile = oc.Profile.get(user_id)
         list_transactions = profile.transactions
@@ -68,7 +75,6 @@ async def check_list_transactions(callback: CallbackQuery):
 
     except PageError:
         log.debug(f"except PageError by {user_id}")
-
 
 
 # input popular and full list values, for classic values list smaller
@@ -122,11 +128,24 @@ async def check_fulllist_values(callback: CallbackQuery):
     await callback.message.edit_text("Укажите валюту:", reply_markup=kb.con.full_list_values(action))
 
 
+@router.callback_query(F.data.startswith("cryptolist_value_"))
+async def check_fulllist_values(callback: CallbackQuery):
+    await callback.answer("")
+
+    user_obj = await rq.SelectUser.load(callback.from_user.id)
+    max_coins = user_obj.user.crypto_max_coins
+
+    action = callback.data.split("_")[-1]
+    await callback.message.edit_text("Укажите валюту:", reply_markup=kb.con.crypto_values(max_coins, action))
+
+
 @router.callback_query(F.data.startswith("value_back_"))
 async def value_back(callback: CallbackQuery):
+    user_obj = await rq.SelectUser.load(callback.from_user.id)
+    premium_user = await user_obj.premium()
     action = callback.data.split("_")[-1]  # input last parametr in callback_data
     text = Profile.get(callback.from_user.id).text
-    await callback.message.edit_text(text, reply_markup=kb.con.popular_values(action))
+    await callback.message.edit_text(text, reply_markup=kb.con.popular_values(premium_user, action))
 
 
 @router.callback_query(F.data == "con_value_pop_⭐️")
@@ -155,7 +174,7 @@ async def con_input_value(callback: CallbackQuery, state: FSMContext):
     oc.msg[user_id] = await callback.message.edit_text(
         f"{text}\nУкажите количество валюты, которое вы хотите конвертировать:"
         f"\nИли нажмите на число ниже⬇️",
-        reply_markup=kb.con.input_numbers(oc.values_symbols[user.style][value]),
+        reply_markup=kb.con.input_numbers(oc.values_symbols[user.style].get(value, f" {value[:3]}")),
     )
 
 
@@ -169,15 +188,16 @@ async def con_fast_input_second_value(callback: CallbackQuery, state: FSMContext
     value = profile.con_value
     user_obj = await rq.SelectUser.load(user_id)
     user = user_obj.user
+    premium_user = await user_obj.premium()
     profile.amount = int(action)
     profile.text = (
-        f"Вы указали: <b>{int(action)}{oc.values_symbols[user.style][value]}</b>."
+        f"Вы указали: <b>{int(action)}{oc.values_symbols[user.style].get(value, f" {value[:3]}")}</b>."
         f"\nВыберите валюту, в которую требуется конвертировать сумму⬇️"
     )
     if value[0:2] == "⭐️":
         keyboard = kb.con.stars_popular_values()
     else:
-        keyboard = kb.con.popular_values("endcon")
+        keyboard = kb.con.popular_values(premium_user, "endcon")
 
     await state.clear()
     await callback.message.edit_text(profile.text, reply_markup=keyboard)
@@ -198,12 +218,10 @@ async def con_output_result(callback: CallbackQuery):
     # get two values and convert it
     first_value = profile.con_value
     result = await Conversion.conversion(user_id, first_value, value, amount, oc.rates)
-    from_symbol = oc.values_symbols[user.style][first_value]
-    to_symbol = oc.values_symbols[user.style][value]
+    from_symbol = oc.values_symbols[user.style].get(first_value, f" {first_value}")
+    to_symbol = oc.values_symbols[user.style].get(value, f" {value}")
     log.debug(f"Conversion {callback.from_user.id}")
-    await callback.message.edit_text(
-        result.text(from_symbol, to_symbol)
-    )
+    await callback.message.edit_text(result.text(from_symbol, to_symbol))
 
 
 @router.callback_query(F.data.startswith("edit_"))
@@ -221,6 +239,8 @@ async def edit_transaction(callback: CallbackQuery, state: FSMContext):
 
 @router.callback_query(F.data.startswith("settings_edit_"))
 async def settings_action(callback: CallbackQuery):
+    user_obj = await rq.SelectUser.load(callback.from_user.id)
+    premium_user = await user_obj.premium()
     await callback.answer("")
     action = callback.data.split("_")[-1]  # input last word in callback_data
     if action == "timezone":
@@ -228,20 +248,40 @@ async def settings_action(callback: CallbackQuery):
 
     elif action == "value":
         Profile.get(callback.from_user.id).choise = "edit"
-        await callback.message.edit_text(
-            "Выберите валюту по умолчанию:", reply_markup=kb.set.classic_values()
-        )
+        if premium_user:
+            keyboard = kb.con.popular_values(premium_user)
+        else:
+            keyboard = kb.set.classic_values()
+        await callback.message.edit_text("Выберите валюту по умолчанию:", reply_markup=keyboard)
 
     elif action == "style":
         await os.clbk_style(callback)
 
     elif action == "info":
-        await os.settings_user_info(callback)
+        text = await os.settings_user_info(premium_user, callback.from_user.id)
+        await callback.message.edit_text(text, disable_web_page_preview=True)
 
     elif action == "nums":
         await callback.message.edit_text(
             "Выберите у каких активов вы хотите изменить кол-во десятичных знаков⬇️",
             reply_markup=kb.set.choise_amount(),
+        )
+
+    elif action == "cryptomaxcoins":
+        await callback.message.edit_text(
+            "Выберите размер списка криптовалют⬇️",
+            reply_markup=kb.set.crypto_max_coins(),
+        )
+
+    elif action == "premium":
+        await callback.message.edit_text(
+            "Хотите получить больше возможностей и валют?\n\n"
+            "Купите <b>Koopeika Premium</b> и откройте возможности:\n"
+            "1. Выбор до 48 криптовалют\n"
+            "2. Выбор <b>криптовалют</b> и <b>Telegram Stars</b> по умолчанию\n"
+            "3. Лимит до 300 транзакций(по умолчанию 50)\n"
+            "4. Увеличен лимит на сумму валют в транзакциях в 1000 раз",
+            reply_markup=kb.pay.premium_buttons(),
         )
 
 
@@ -303,3 +343,21 @@ async def settings_set_crypto_amount(callback: CallbackQuery):
     await callback.message.edit_text(
         f"Вы изменили количество цифр после запятой(криптовалюта) на <b>{action}</b>"
     )
+
+
+# edit crypto max coins
+@router.callback_query(F.data.startswith("crypto_max_"))
+async def settings_set_cryptomaxcoins(callback: CallbackQuery):
+    await callback.answer("")
+    action = int(callback.data.split("_")[-1])
+    text = await os.crypto_max_coins_edit(action, callback.from_user.id)
+    await callback.message.edit_text(text)
+
+
+@router.callback_query(F.data.startswith("pay_premium_month_"))
+async def pay_premium_month(callback: CallbackQuery):
+    await callback.answer("")
+    action = callback.data.split("_")[-1]
+
+    if action == "stars":
+        await month_payment_stars(callback)

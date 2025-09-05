@@ -50,19 +50,20 @@ async def con_input_second_number(message: Message, state: FSMContext):
         value = profile.con_value
         user_obj = await rq.SelectUser.load(user_id)
         user = user_obj.user
+        premium_user = await user_obj.premium()
 
         if value == "⭐️":
             keyboard = kb.con.stars_popular_values()
         else:
-            keyboard = kb.con.popular_values("endcon")
+            keyboard = kb.con.popular_values(premium_user, "endcon")
 
-        await checker_con_num(message.text, value)
+        await checker_con_num(message.text, value, premium_user)
         # after checker
         amount = await int_or_float(message.text)
         profile.amount = amount
 
         await message.answer(
-            f"Вы указали: <b>{amount:,}{oc.values_symbols[user.style][value]}</b>."
+            f"Вы указали: <b>{amount:,}{oc.values_symbols[user.style].get(value, f" {value[:3]}")}</b>."
             f"\nВыберите валюту, в которую требуется конвертировать сумму⬇️",
             reply_markup=keyboard,
         )
@@ -77,8 +78,10 @@ async def con_input_second_number(message: Message, state: FSMContext):
 @router.message(Balance.add)
 async def add_assets(message: Message, state: FSMContext):
     try:
+        user = await rq.SelectUser.load(message.from_user.id)
+        premium_user = await user.premium()
         profile = Profile.get(message.from_user.id)
-        await checker_num(message.text, profile.value)
+        await checker_num(message.text, profile.value, premium_user)
         profile.choise = "+" + message.text
         await state.set_state(Balance.assets_end)
         await message.answer(
@@ -97,8 +100,10 @@ async def add_assets(message: Message, state: FSMContext):
 @router.message(Balance.deprive)
 async def add_losses(message: Message, state: FSMContext):
     try:
+        user = await rq.SelectUser.load(message.from_user.id)
+        premium_user = await user.premium()
         profile = Profile.get(message.from_user.id)
-        await checker_num(message.text, profile.value)
+        await checker_num(message.text, profile.value, premium_user)
         profile.choise = "-" + message.text
         await state.set_state(Balance.assets_end)
         await message.answer(

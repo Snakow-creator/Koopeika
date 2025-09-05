@@ -15,7 +15,6 @@ class ListTransactions:
         profile.transactions = self
         profile.transactions_page = 1
 
-
     @classmethod
     async def load(cls, tg_id):
         transactions_obj = await rq.Transactions.load(tg_id)
@@ -30,22 +29,20 @@ class ListTransactions:
             emoji = "🟩" if tr.amount[0] == "+" else "🟥"
 
             if tr.description:
-                second_line = f"\n<b>{tr.amount}{oc.values_symbols[user.style][tr.value]}</b>({tr.description})"
+                second_line = f"\n<b>{tr.amount}{oc.values_symbols[user.style].get(tr.value, f" {tr.value[:3]}")}</b>({tr.description})"
             else:
-                second_line = f"\n<b>{tr.amount}{oc.values_symbols[user.style][tr.value]}</b>"
+                second_line = (
+                    f"\n<b>{tr.amount}{oc.values_symbols[user.style].get(tr.value, f" {tr.value[:3]}")}</b>"
+                )
 
-            text += (
-                f"{ind}.{emoji} <b>{time}</b>"
-                f"{second_line}"
-                f"\nid: <code>{tr.id}</code>\n\n"
-            )
+            text += f"{ind}.{emoji} <b>{time}</b>" f"{second_line}" f"\nid: <code>{tr.id}</code>\n\n"
             if ind % 10 == 0:
-                list_transactions[ind/10] = text
+                list_transactions[ind / 10] = text
                 text = "<b>История транзакций:</b>\n"
 
         if text != "<b>История транзакций:</b>\n":
             len_pages = len(list_transactions)
-            list_transactions[len_pages+1] = text
+            list_transactions[len_pages + 1] = text
 
         return cls(tg_id, list_transactions)
 
@@ -71,5 +68,3 @@ class ListTransactions:
         formatted_time = f"{dt.day} {oc.months[dt.month]} {dt.strftime('%H:%M')}"
 
         return formatted_time
-
-

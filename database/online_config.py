@@ -391,7 +391,7 @@ max_con_values = {
     "⭐️sell": 8_000_000_000_000_000,  # Telegram Stars (Sell)
 }
 
-max_con_values_1000 = {
+max_con_values_premium = {
     "USD": 1_000_000_000_000_000,  # United States Dollar
     "AED": 3_600_000_000_000_000_000,  # UAE Dirham
     "AUD": 1_500_000_000_000_000,  # Australian Dollar
@@ -571,4 +571,26 @@ currency_dict = {
     Покупка звезд на <a href="https://split.tg/">SPLIT</a>(без <b>KYC*</b>)
     Покупка звезд на <a href="https://fragment.com/stars">FRAGMENT</a>(с <b>KYC*</b>).
     *KYC - Верификация по документам""",
+}
+
+# title for payments in stars
+title_stars = {
+    30: "Подписка на месяц",
+    90: "Подписка на 3 месяца",
+    180: "Подписка на 6 месяцев",
+    365: "Подписка на 12 месяцев",
+}
+
+title_stars_price = {
+    30: 60,
+    90: 170,
+    180: 300,
+    365: 500,
+}
+
+title_stars_for_db = {
+    30: "premium_stars_30",
+    90: "premium_stars_90",
+    180: "premium_stars_180",
+    365: "premium_stars_365",
 }

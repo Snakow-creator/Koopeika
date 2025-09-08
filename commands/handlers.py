@@ -45,7 +45,7 @@ async def give_premium(message: Message, command: CommandObject):
     if message.from_user.id == 1429466470:
         user_id = command.args
         log.debug(f"Give premium to {user_id}")
-        await rq.Edit.month_premium_extend(user_id)
+        await rq.Edit.premium_extend(user_id)
         await message.answer(f"Вы дали премиум на месяц пользователю: <b><code>{user_id}</code></b>")
 
 
@@ -166,4 +166,6 @@ async def edit_transaction(message: Message):
 async def settings(message: Message):
     user_obj = await rq.SelectUser.load(message.from_user.id)
     premium_user = await user_obj.premium()
-    await message.answer("Выбери параметр который хочешь изменить.", reply_markup=kb.set.settings(premium_user))
+    await message.answer(
+        "Выбери параметр который хочешь изменить.", reply_markup=kb.set.settings(premium_user)
+    )

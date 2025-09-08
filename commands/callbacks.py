@@ -3,7 +3,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery
 
 from commands.states import Con, Transaction, Balance
-from commands.payments import month_payment_stars
+from commands.payments import payment_stars
 from database.errors_config import ManyTransactionsError, PageError
 from database.online_config import Profile
 from operations.choise_value import choise_value
@@ -191,11 +191,11 @@ async def con_fast_input_second_value(callback: CallbackQuery, state: FSMContext
     premium_user = await user_obj.premium()
     profile.amount = int(action)
     profile.text = (
-        f"Вы указали: <b>{int(action)}{oc.values_symbols[user.style].get(value, f" {value[:3]}")}</b>."
+        f"Вы указали: <b>{int(action)}{oc.values_symbols[user.style].get(value, f' {value[:3]}')}</b>."
         f"\nВыберите валюту, в которую требуется конвертировать сумму⬇️"
     )
     if value[0:2] == "⭐️":
-        keyboard = kb.con.stars_popular_values()
+        keyboard = kb.con.stars_popular_values(premium_user)
     else:
         keyboard = kb.con.popular_values(premium_user, "endcon")
 
@@ -279,8 +279,9 @@ async def settings_action(callback: CallbackQuery):
             "Купите <b>Koopeika Premium</b> и откройте возможности:\n"
             "1. Выбор до 48 криптовалют\n"
             "2. Выбор <b>криптовалют</b> и <b>Telegram Stars</b> по умолчанию\n"
-            "3. Лимит до 300 транзакций(по умолчанию 50)\n"
-            "4. Увеличен лимит на сумму валют в транзакциях в 1000 раз",
+            "3. Конвертация из звезд в криптовалюту\n"
+            "4. Лимит до 300 транзакций(по умолчанию 50)\n"
+            "5. Увеличен лимит на сумму валют в 1000 раз",
             reply_markup=kb.pay.premium_buttons(),
         )
 
@@ -354,10 +355,11 @@ async def settings_set_cryptomaxcoins(callback: CallbackQuery):
     await callback.message.edit_text(text)
 
 
-@router.callback_query(F.data.startswith("pay_premium_month_"))
+@router.callback_query(F.data.startswith("pay_premium_stars_"))
 async def pay_premium_month(callback: CallbackQuery):
     await callback.answer("")
-    action = callback.data.split("_")[-1]
+    action = callback.data.split("_")[-2]
 
     if action == "stars":
-        await month_payment_stars(callback)
+        days = callback.data.split("_")[-1]
+        await payment_stars(callback, int(days))

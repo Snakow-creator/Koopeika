@@ -29,10 +29,10 @@ class ListTransactions:
             emoji = "🟩" if tr.amount[0] == "+" else "🟥"
 
             if tr.description:
-                second_line = f"\n<b>{tr.amount}{oc.values_symbols[user.style].get(tr.value, f" {tr.value[:3]}")}</b>({tr.description})"
+                second_line = f"\n<b>{tr.amount}{oc.values_symbols[user.style].get(tr.value, f' {tr.value[:3]}')}</b>({tr.description})"
             else:
                 second_line = (
-                    f"\n<b>{tr.amount}{oc.values_symbols[user.style].get(tr.value, f" {tr.value[:3]}")}</b>"
+                    f"\n<b>{tr.amount}{oc.values_symbols[user.style].get(tr.value, f' {tr.value[:3]}')}</b>"
                 )
 
             text += f"{ind}.{emoji} <b>{time}</b>" f"{second_line}" f"\nid: <code>{tr.id}</code>\n\n"

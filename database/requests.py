@@ -120,18 +120,19 @@ class Payments(SelectUser):
             log.debug("get user and payment db data")
             return cls(user.tg_id, user, payments, session)
 
+
     @classmethod
-    async def add(cls, tg_id: int, t_unid: str):
+    async def add(cls, tg_id: int, t_unid: str, title: str):
         async with async_session() as session:
-            user = await session.scalar(select(User).where(User.tg_id == tg_id))
-            session.add(
-                Payment(
-                    user=user,
-                    transaction_uid=t_unid
-                )
-            )
-            log.debug(f"Add payment {tg_id}")
-            await session.commit()
+            try:
+                user = await session.scalar(select(User).where(User.tg_id == tg_id))
+                session.add(Payment(user=user, transaction_uid=t_unid, title=title))
+                log.debug(f"Add payment {tg_id}")
+            except AttributeError:
+                session.add(Payment(user=user, transaction_uid=t_unid))
+                log.error("error in add payment")
+            finally:
+                await session.commit()
 
     async def refund(cls, tr_uid: str):
         async with async_session() as session:
@@ -204,7 +205,7 @@ class Edit:
 
     # extend koopeika premium
     @staticmethod
-    async def month_premium_extend(tg_id: int):
+    async def premium_extend(tg_id: int, days=30):
         async with async_session() as session:
             user = await session.scalar(select(User).where(User.tg_id == tg_id))
             user_obj = await SelectUser.load(tg_id)
@@ -213,7 +214,7 @@ class Edit:
                 old_premium_until = user.premium_until
             else:
                 old_premium_until = datetime.now(timezone.utc)
-            new_premium_until = old_premium_until + timedelta(days=30)
+            new_premium_until = old_premium_until + timedelta(days=days)
             user.premium_until = new_premium_until
             log.debug(f"{user.tg_id} premium until changed on {new_premium_until}")
             await session.commit()
@@ -225,11 +226,20 @@ class Edit:
         async with async_session() as session:
             user = await session.scalar(select(User).where(User.tg_id == tg_id))
             payments = await session.scalar(select(Payment).where(Payment.transaction_uid == unid))
+            title = payments.title
+            if title:
+                if title.startswith("premium_stars_"):
+                    days = int(title.split("_")[-1])
+            else:
+                days = 30
+                log.error(f"title not found: {unid}")
+
             old_premium_until = user.premium_until
-            new_premium_until = old_premium_until - timedelta(days=30)
+            new_premium_until = old_premium_until - timedelta(days=days)
             user.premium_until = new_premium_until
             payments.closed = True
             log.debug(f"{user.tg_id} premium until has been refunded on {new_premium_until}")
             await session.commit()
 
             return new_premium_until
+

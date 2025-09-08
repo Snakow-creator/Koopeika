@@ -55,6 +55,7 @@ class Payment(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     user_id: Mapped[str] = mapped_column(ForeignKey("users.tg_id"))
     transaction_uid: Mapped[str] = mapped_column(String, nullable=False, unique=True)
+    title: Mapped[str] = mapped_column(String(40), nullable=False)
     added: Mapped[DateTime] = mapped_column(DATETIME, nullable=False, default=datetime.now(timezone.utc))
     closed: Mapped[bool] = mapped_column(Boolean, default=False)
 

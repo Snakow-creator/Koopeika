@@ -90,7 +90,7 @@ class con:
         return InlineKeyboardMarkup(inline_keyboard=buttons)
 
     @staticmethod
-    def stars_popular_values():
+    def stars_popular_values(premium_user: str | None) -> InlineKeyboardMarkup:
         buttons = [
             [
                 InlineKeyboardButton(text="🇺🇸USD", callback_data=f"endcon_value_pop_USD"),
@@ -108,10 +108,31 @@ class con:
                 InlineKeyboardButton(text="🇨🇳CNY", callback_data=f"endcon_value_pop_CNY"),
                 InlineKeyboardButton(text="🇯🇵JPY", callback_data=f"endcon_value_pop_JPY"),
                 InlineKeyboardButton(text="🇹🇷TRY", callback_data=f"endcon_value_pop_TRY"),
-                InlineKeyboardButton(text="TON", callback_data="endcon_value_pop_TON"),
             ],
-            [InlineKeyboardButton(text="Остальные валюты", callback_data=f"otherlist_value_endcon")],
         ]
+        if premium_user:
+            buttons[-1].append(
+                InlineKeyboardButton(text="🇬🇧GBP", callback_data=f"endcon_value_pop_GBP"),
+            )
+            buttons.extend([
+                [
+                    InlineKeyboardButton(text="₿BTC", callback_data=f"endcon_value_pop_BTC"),
+                    InlineKeyboardButton(text="ΞETH", callback_data=f"endcon_value_pop_ETH"),
+                    InlineKeyboardButton(text="SOL", callback_data=f"endcon_value_pop_SOL"),
+                    InlineKeyboardButton(text="TON", callback_data=f"endcon_value_pop_TON"),
+                ],
+                [
+                    InlineKeyboardButton(text="Криптовалюты", callback_data=f"cryptolist_value_endcon"),
+                    InlineKeyboardButton(text="Остальные валюты", callback_data=f"otherlist_value_endcon"),
+                ],
+            ])
+        else:
+            buttons[-1].append(
+                InlineKeyboardButton(text="TON", callback_data=f"endcon_value_pop_TON"),
+            )
+            buttons.append([
+                InlineKeyboardButton(text="Остальные валюты", callback_data=f"otherlist_value_endcon"),
+            ])
         return InlineKeyboardMarkup(inline_keyboard=buttons)
 
     # keyboard for full list
@@ -468,7 +489,10 @@ class pay:
     @staticmethod
     def premium_buttons():
         builder = InlineKeyboardBuilder()
-        builder.button(text="1 месяц", callback_data="pay_premium_month_stars")
+        builder.button(text="1 месяц", callback_data="pay_premium_stars_30")
+        builder.button(text="3 месяца", callback_data="pay_premium_stars_90")
+        builder.button(text="6 месяцев", callback_data="pay_premium_stars_180")
+        builder.button(text="12 месяцев", callback_data="pay_premium_stars_365")
         builder.button(text="Условия пользования", callback_data="terms_of_service")
         builder.adjust(1)
         return builder.as_markup()
@@ -480,7 +504,7 @@ class pay:
         return builder.as_markup()
 
     @staticmethod
-    def premium():
+    def premium(amount: int):
         builder = InlineKeyboardBuilder()
-        builder.button(text="Подписаться на месяц(1⭐️)", pay=True)
+        builder.button(text=f"Подписаться на месяц({amount}⭐️)", pay=True)
         return builder.as_markup()

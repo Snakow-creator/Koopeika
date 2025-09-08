@@ -10,7 +10,7 @@ load_dotenv()
 
 TOKEN = os.getenv("BOT_TOKEN")
 BOT_PROPERTIES = DefaultBotProperties(parse_mode=ParseMode.HTML)
-DEBUG = True # change to True for debug
+DEBUG = False  # change to True for debug
 
 
 NBK_API: str = os.getenv("NBK_API")

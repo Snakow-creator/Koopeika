@@ -8,6 +8,7 @@ from loggers.logs import log
 
 import commands.keyboards as kb
 import database.requests as rq
+import database.online_config as oc
 
 router = Router()
 
@@ -19,28 +20,39 @@ async def pre_checkout_handler(pre_checkout_query: PreCheckoutQuery):
 
 
 # premium subscribe for month
-async def month_payment_stars(callback: CallbackQuery):
-    prices = [LabeledPrice(label="XTR", amount="60")]
+async def payment_stars(callback: CallbackQuery, amount: int):
+    price = oc.title_stars_price[amount]
+    prices = [LabeledPrice(label="XTR", amount=price)]
+    title = oc.title_stars.get(amount)
     await callback.message.answer_invoice(
         title="Koopeika Premium",
-        description="Подписка на месяц\n" \
-                    "Покупая подписку, вы соглашаетесь с договором оферты в /info",
+        description=f"{title} \n Покупая подписку, вы соглашаетесь с договором оферты в /info",
         prices=prices,
-        payload="month_premium_subscribe",
-        provider_token=None, # Telegram Stars
+        payload=f"premium_subscribe_{amount}",
+        provider_token=None,  # Telegram Stars
         currency="XTR",
-        reply_markup=kb.pay.premium(),
+        reply_markup=kb.pay.premium(amount=price),
     )
 
 
 @router.message(F.successful_payment)
 async def successful_payment(message: Message):
-    premium_until = await rq.Edit.month_premium_extend(message.from_user.id)
+    payload = message.successful_payment.invoice_payload
+    amount = payload.split("_")[-1]
+    if payload.startswith("premium_subscribe_"):
+        await give_premium_month(message, int(amount))
+
+
+
+# successful payment for month
+async def give_premium_month(message: Message, amount: int):
+    premium_until = await rq.Edit.premium_extend(message.from_user.id, amount)
     premium_time = datetime.strftime(premium_until, "%d.%m.%Y %H:%M")
     transaction_id = message.successful_payment.telegram_payment_charge_id
-    log.debug(f"Successful payment {transaction_id}")
+    log.debug(f"Successful payment for {amount} {transaction_id}")
+    title = oc.title_stars_for_db.get(amount)
 
-    await rq.Payments.add(message.from_user.id, transaction_id)
+    await rq.Payments.add(message.from_user.id, transaction_id, title)
     await message.answer(
         f"Оплата прошла успешно✅\n"
         f"Подписка продлена до <b>{premium_time}</b>\n"
@@ -48,13 +60,8 @@ async def successful_payment(message: Message):
         f"Рефаунд: <code>{transaction_id}</code>"
     )
 
-
 @router.message(Command("refund"))
-async def сmd_refund(
-        message: Message,
-        bot: Bot,
-        command: CommandObject
-    ):
+async def сmd_refund(message: Message, bot: Bot, command: CommandObject):
     if message.from_user.id == 1429466470:
         log.debug(f"Refund by admin {message.from_user.id}")
         transaction_id = command.args
@@ -63,19 +70,16 @@ async def сmd_refund(
             return
         try:
             user = await rq.Payments.load(transaction_id)
+            await bot.refund_star_payment(user_id=user.user_id, telegram_payment_charge_id=transaction_id)
             await rq.Edit.month_premium_refund(user.user_id, transaction_id)
-            await bot.refund_star_payment(
-                user_id=user.user_id,
-                telegram_payment_charge_id=transaction_id
-            )
             await message.answer("Возврат произведен успешно✅")
 
         except AttributeError as error:
             await bot.refund_star_payment(
-                user_id=message.from_user.id,
-                telegram_payment_charge_id=transaction_id
+                user_id=message.from_user.id, telegram_payment_charge_id=transaction_id
             )
             log.debug(f"Refund to admin {message.from_user.id}")
+            await message.answer("Рефаунд был вернут тестеру")
         except TelegramBadRequest as error:
             if "CHANGE NOT FOUND" in error.message:
                 text = "Транзакция не была найдена"
@@ -91,6 +95,3 @@ async def сmd_refund(
 
             await message.answer(text)
             return
-
-
-

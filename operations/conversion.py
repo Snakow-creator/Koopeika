@@ -1,5 +1,4 @@
 import database.requests as rq
-import database.online_config as oc
 
 from loggers.logs import log
 
@@ -124,7 +123,7 @@ class Conversion:
         i = num.find(".")
         user_obj = await rq.SelectUser.load(user_id)
         user = user_obj.user
-        fiat_len, crypto_len = user.fiat_amount, user.crypto_amount
+        fiat_len, crypto_len = user["fiat_amount"], user["crypto_amount"]
 
         # if num is int converted to float or num is stars
         if (num[-2:] == ".0") or (to_value == "⭐️"):
@@ -157,11 +156,11 @@ class Convert_Balance(Conversion):
         result = 0
         trs_obj = await rq.Transactions.load(tg_id)
         trs = trs_obj.transactions
-        to_value = trs_obj.user.value
+        to_value = trs_obj.user["value"]
         for tr in trs:
-            op = tr.amount[0]
-            amount = float(tr.amount[1:])
-            from_value = tr.value
+            op = tr["amount"][0]
+            amount = float(tr["amount"][1:])
+            from_value = tr["value"]
             convert_amount = await cls._current_currency(from_value, to_value, amount, rates)
             if op == "+":
                 result += float(convert_amount)

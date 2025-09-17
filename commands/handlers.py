@@ -43,7 +43,7 @@ async def info(message: Message):
 @router.message(Command("give_premium"))
 async def give_premium(message: Message, command: CommandObject):
     if message.from_user.id == 1429466470:
-        user_id = command.args
+        user_id = int(command.args)
         log.debug(f"Give premium to {user_id}")
         await rq.Edit.premium_extend(user_id)
         await message.answer(f"Вы дали премиум на месяц пользователю: <b><code>{user_id}</code></b>")
@@ -63,9 +63,9 @@ async def balance_check(message: Message):
     con = await Convert_Balance.con_balance(user_id, oc.rates)
     user_obj = await rq.SelectUser.load(user_id)
     user = user_obj.user
-    value = user.value
-    style = user.style
-    value = oc.values_symbols[style][value]
+    value = user.get("value")
+    style = user.get("style")
+    value = oc.values_symbols[style].get(value, f" {value[:3]}")
     log.debug(f"Check balance {message.from_user.id}")
     await message.answer(
         f"Ваш баланс активов – <b>{con.balance}{value}</b>\n"

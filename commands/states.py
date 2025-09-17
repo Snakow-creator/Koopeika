@@ -63,7 +63,7 @@ async def con_input_second_number(message: Message, state: FSMContext):
         profile.amount = amount
 
         await message.answer(
-            f"Вы указали: <b>{amount:,}{oc.values_symbols[user.style].get(value, f' {value[:3]}')}</b>."
+            f"Вы указали: <b>{amount:,}{oc.values_symbols[user["style"]].get(value, f' {value[:3]}')}</b>."
             f"\nВыберите валюту, в которую требуется конвертировать сумму⬇️",
             reply_markup=keyboard,
         )
@@ -144,8 +144,9 @@ async def transaction_edit(message: Message, state: FSMContext):
     try:
         profile = Profile.get(message.from_user.id)
         user_obj = await rq.SelectUser.load(message.from_user.id)
+        premium_user = await user_obj.premium()
         user = user_obj.user
-        await checker_num(message.text, user.value)
+        await checker_num(message.text, user["value"], premium_user)
         profile.choise = float(message.text)
         await state.set_state(Transaction.edit_end)
         await message.answer("Напишите айди транзакции:")
@@ -180,7 +181,7 @@ async def transaction_delete(message: Message, state: FSMContext):
         num_id = int(message.text)
         await state.clear()
         transaction = await rq.Transactions.load(message.from_user.id)
-        await transaction.delete(num_id)
+        await transaction.delete(num_id, message.from_user.id)
         await message.answer("Транзакция успешно удалена!")
         log.debug(f"Delete transaction {message.from_user.id}")
     except BadUserIdError as ex:

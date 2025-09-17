@@ -6,9 +6,9 @@ import database.online_config as oc
 async def checker_id(delete_id, user_transactions):
     list_id = []
     for transaction in user_transactions:
-        list_id.append(transaction.id)
-    if delete_id in list_id:
-        return
+        list_id.append(transaction["id"])
+        if delete_id in list_id:
+            return transaction["amount"][0]
     raise BadUserIdError()
 
 

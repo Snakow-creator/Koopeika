@@ -43,7 +43,6 @@ async def successful_payment(message: Message):
         await give_premium_month(message, int(amount))
 
 
-
 # successful payment for month
 async def give_premium_month(message: Message, amount: int):
     premium_until = await rq.Edit.premium_extend(message.from_user.id, amount)
@@ -60,6 +59,7 @@ async def give_premium_month(message: Message, amount: int):
         f"Рефаунд: <code>{transaction_id}</code>"
     )
 
+
 @router.message(Command("refund"))
 async def сmd_refund(message: Message, bot: Bot, command: CommandObject):
     if message.from_user.id == 1429466470:
@@ -69,9 +69,10 @@ async def сmd_refund(message: Message, bot: Bot, command: CommandObject):
             await message.answer("Неверно указан /refund АЙДИ")
             return
         try:
-            user = await rq.Payments.load(transaction_id)
-            await bot.refund_star_payment(user_id=user.user_id, telegram_payment_charge_id=transaction_id)
-            await rq.Edit.month_premium_refund(user.user_id, transaction_id)
+            user_obj = await rq.Payments.load(transaction_id)
+            user_id = user_obj.user["tg_id"]
+            await bot.refund_star_payment(user_id=user_id, telegram_payment_charge_id=transaction_id)
+            await rq.Edit.premium_refund(user_id, transaction_id)
             await message.answer("Возврат произведен успешно✅")
 
         except AttributeError as error:

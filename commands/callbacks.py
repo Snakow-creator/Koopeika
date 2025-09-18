@@ -44,6 +44,16 @@ async def back_region(callback: CallbackQuery):
     )
 
 
+# choise changes transaction
+@router.callback_query(F.data == "edit_transactions")
+async def edit_transaction(callback: CallbackQuery):
+    await callback.answer()
+
+    await callback.message.edit_text(
+        "Выберите действие с транзакцией:", reply_markup=kb.set.edit_transaction()
+    )
+
+
 # paginator transactions
 @router.callback_query(F.data.startswith("transaction_"))
 async def check_list_transactions(callback: CallbackQuery):
@@ -104,6 +114,23 @@ async def add_transaction(callback: CallbackQuery, state: FSMContext):
     elif choise == "edit":
         text = await os.default_value_edit(value, callback.from_user.id)
         await callback.message.edit_text(text)
+
+
+# add assets or deprive
+@router.callback_query(F.data.startswith("add_assets_"))
+async def add_assets(callback: CallbackQuery):
+    await callback.answer("")
+    action = callback.data.split("_")[-1]
+
+    user_obj = await rq.SelectUser.load(callback.from_user.id)
+    premium = await user_obj.premium()
+    profile = Profile.get(callback.from_user.id)
+    profile.choise = action
+    profile.text = "Укажите <b>валюту</b>:"
+    await callback.message.edit_text(
+        "Укажите <b>валюту</b>:",
+        reply_markup=kb.con.popular_values(premium, convertation=False),
+    )
 
 
 # выполняем функцию отвечающую на кнопку "Без комментариев"
@@ -200,7 +227,7 @@ async def con_input_value(callback: CallbackQuery, state: FSMContext):
     oc.msg[user_id] = await callback.message.edit_text(
         f"{text}\nУкажите количество валюты, которое вы хотите конвертировать:"
         f"\nИли нажмите на число ниже⬇️",
-        reply_markup=kb.con.input_numbers(oc.values_symbols[user["style"]].get(value, f" {value[:3]}")),
+        reply_markup=kb.con.input_numbers(oc.values_symbols[user["style"]].get(value, f" {value}")),
     )
 
 
@@ -217,7 +244,7 @@ async def con_fast_input_second_value(callback: CallbackQuery, state: FSMContext
     premium_user = await user_obj.premium()
     profile.amount = int(action)
     profile.text = (
-        f"Вы указали: <b>{int(action)}{oc.values_symbols[user["style"]].get(value, f' {value[:3]}')}</b>."
+        f"Вы указали: <b>{int(action)}{oc.values_symbols[user["style"]].get(value, f' {value}')}</b>."
         f"\nВыберите валюту, в которую требуется конвертировать сумму⬇️"
     )
     if value[0:2] == "⭐️":

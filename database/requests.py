@@ -84,14 +84,6 @@ class Transactions(SelectUser):
         await conn.close()
         return cls(tg_id, user, transactions)
 
-    @staticmethod
-    async def get_values():
-        conn = await connect()
-        values = await conn.fetch("SELECT DISTINCT value FROM transactions")
-        list_values = [v["value"] for v in values]
-        log.debug(f"Get rq_values {list_values}")
-        return list_values
-
     async def add(self, value, assets, description):
         conn = await connect()
         if len(description) >= 30:

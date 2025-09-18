@@ -107,7 +107,7 @@ async def con_input_second_number(message: Message, state: FSMContext):
         profile.amount = amount
 
         await message.answer(
-            f"Вы указали: <b>{amount:,}{oc.values_symbols[user["style"]].get(value, f' {value[:3]}')}</b>."
+            f"Вы указали: <b>{amount:,}{oc.values_symbols[user["style"]].get(value, f' {value}')}</b>."
             f"\nВыберите валюту, в которую требуется конвертировать сумму⬇️",
             reply_markup=keyboard,
         )

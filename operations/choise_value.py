@@ -7,9 +7,9 @@ async def choise_value(action, style=None, num=None):
         value = "⭐️"
     else:
         value = action
-    answer = f"Вы выбрали: {oc.values.get(action, action[:3])} ({value})"
+    answer = f"Вы выбрали: {oc.values.get(action, action)} ({value})"
     if style and num:
-        text = f"Вы выбрали: <b>{num}{oc.values_symbols[style].get(action, action[:3])}</b>"
+        text = f"Вы выбрали: <b>{num}{oc.values_symbols[style].get(action, action)}</b>"
     else:
-        text = f"Вы выбрали: <b>{oc.values.get(action, action[:3])}</b> (<b>{value}</b>)"
+        text = f"Вы выбрали: <b>{oc.values.get(action, action)}</b> (<b>{value}</b>)"
     return answer, text

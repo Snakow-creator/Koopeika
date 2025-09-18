@@ -11,7 +11,7 @@ main = ReplyKeyboardMarkup(
     keyboard=[
         [KeyboardButton(text="Баланс💲")],
         [KeyboardButton(text="Конвертация🏪"), KeyboardButton(text="Список валют📖")],
-        [KeyboardButton(text="Активы💸"), KeyboardButton(text="Транзакции🔁")],
+        [KeyboardButton(text="Активы💸"), KeyboardButton(text="Транзакции📔")],
         [KeyboardButton(text="Настройки⚙️")],
     ],
     resize_keyboard=True,
@@ -21,16 +21,6 @@ main = ReplyKeyboardMarkup(
 assets = ReplyKeyboardMarkup(
     keyboard=[
         [KeyboardButton(text="Добавить активы💸"), KeyboardButton(text="Указать траты📉")],
-        [KeyboardButton(text="Назад⬅️")],
-    ],
-    resize_keyboard=True,
-    input_field_placeholder="👇🏻👇🏻👇🏻",
-)
-
-# transactions keyboard
-trasnactions = ReplyKeyboardMarkup(
-    keyboard=[
-        [KeyboardButton(text="История транзакций📋"), KeyboardButton(text="Изменить транзакцию📝")],
         [KeyboardButton(text="Назад⬅️")],
     ],
     resize_keyboard=True,
@@ -266,6 +256,17 @@ class con:
 
 # class for other inline buttons
 class clbk:
+    # assets keyboard
+    @staticmethod
+    def assets_keyboard() -> InlineKeyboardMarkup:
+        buttons = [
+            [
+                InlineKeyboardButton(text="Добавить активы💸", callback_data="add_assets_change"),
+                InlineKeyboardButton(text="Указать траты📉", callback_data="add_assets_deprive"),
+            ]
+        ]
+        return InlineKeyboardMarkup(inline_keyboard=buttons)
+
     # assets keyboard, add assets without comment
     @staticmethod
     def no_comment() -> InlineKeyboardMarkup:
@@ -274,15 +275,16 @@ class clbk:
 
     # beautiful keyboard for transactions, change page
     @staticmethod
-    def transactions(tg_id) -> InlineKeyboardMarkup:
-        page = oc.Profile.get(tg_id).transactions_page
-        buttons = [
-            [
+    def transactions(tg_id=None, pages=False) -> InlineKeyboardMarkup:
+        buttons = [[InlineKeyboardButton(text="Изменить транзакцию✏️", callback_data="edit_transactions")]]
+
+        if pages:
+            page = oc.Profile.get(tg_id).transactions_page
+            buttons.append([
                 InlineKeyboardButton(text="⬅️", callback_data="transaction_left"),
                 InlineKeyboardButton(text=f"{page}", callback_data="transaction_page"),
-                InlineKeyboardButton(text="➡️", callback_data="transaction_right"),
-            ]
-        ]
+                InlineKeyboardButton(text="➡️", callback_data="transaction_right")
+            ])
 
         return InlineKeyboardMarkup(inline_keyboard=buttons)
 

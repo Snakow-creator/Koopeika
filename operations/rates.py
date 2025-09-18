@@ -60,7 +60,5 @@ async def parse_crypto_top():
 # get data cryptorates
 async def cryptorates():
     dinamic_cryptolist = await parse_crypto_top()
-    rq_values = await rq.Transactions.get_values()
-    full_list = dinamic_cryptolist + rq_values
-    crates = await get_cryptorates(full_list)
+    crates = await get_cryptorates(dinamic_cryptolist)
     return crates

@@ -65,7 +65,7 @@ async def balance_check(message: Message):
     user = user_obj.user
     value = user.get("value")
     style = user.get("style")
-    value = oc.values_symbols[style].get(value, f" {value[:3]}")
+    value = oc.values_symbols[style].get(value, f" {value}")
     log.debug(f"Check balance {message.from_user.id}")
     await message.answer(
         f"Ваш баланс активов – <b>{con.balance}{value}</b>\n"
@@ -87,15 +87,6 @@ async def conversion(message: Message):
     )
 
 
-# Добавление клавиатуры активов
-@router.message(F.text == "Активы💸")
-async def assets_keyboard(message: Message):
-    await message.answer(
-        'Вы перешли в "Операции с активами"' "\nВыберите нужное вам действие:",
-        reply_markup=kb.assets,
-    )
-
-
 @router.message(F.text == "Список валют📖")
 async def list_region_values(message: Message):
     await message.answer(
@@ -106,60 +97,25 @@ async def list_region_values(message: Message):
 
 
 # add assets
-@router.message(F.text == "Добавить активы💸")
+@router.message(F.text == "Активы💸")
 async def add_assets(message: Message):
-    user_obj = await rq.SelectUser.load(message.from_user.id)
-    premium = await user_obj.premium()
-    profile = Profile.get(message.from_user.id)
-    profile.choise = "change"
-    profile.text = "Укажите <b>валюту</b>:"
-    await message.answer(
-        "Укажите <b>валюту</b>:",
-        reply_markup=kb.con.popular_values(premium, convertation=False),
-    )
-
-
-# deprive assets
-@router.message(F.text == "Указать траты📉")
-async def deprive_assets(message: Message):
-    user_obj = await rq.SelectUser.load(message.from_user.id)
-    premium = await user_obj.premium()
-    profile = Profile.get(message.from_user.id)
-    profile.choise = "deprive"
-    profile.text = "Укажите <b>валюту</b>:"
-    await message.answer(
-        "Укажите <b>валюту</b>:",
-        reply_markup=kb.con.popular_values(premium, convertation=False),
-    )
-
-
-#
-@router.message(F.text == "Транзакции🔁")
-async def transactions_keyboard(message: Message):
-    await message.answer(
-        'Вы перешли в "Операции с транзакциями"' "\nВыберите нужное вам действие:",
-        reply_markup=kb.trasnactions,
-    )
+    await message.answer('Выберите нужное <b>действие</b>👇',
+                         reply_markup=kb.clbk.assets_keyboard())
 
 
 # обработка запросов в базу данных для получения красивой картинки транзакций
-@router.message(F.text == "История транзакций📋")
+@router.message(F.text == "Транзакции📔")
 async def check_history_transactions(message: Message):
     list_transactions = await ListTransactions.load(message.from_user.id)
     transactions = list_transactions.get()
     if list_transactions.pages() > 1:
         await message.answer(
             transactions,
-            reply_markup=kb.clbk.transactions(message.from_user.id),
+            reply_markup=kb.clbk.transactions(message.from_user.id, pages=True),
         )
     else:
-        await message.answer(transactions)
+        await message.answer(transactions, reply_markup=kb.clbk.transactions())
     log.debug(f"Check history transactions {message.from_user.id}")
-
-
-@router.message(F.text == "Изменить транзакцию📝")
-async def edit_transaction(message: Message):
-    await message.answer("Выберите что сделать с транзакцией:", reply_markup=kb.set.edit_transaction())
 
 
 @router.message(F.text == "Настройки⚙️")

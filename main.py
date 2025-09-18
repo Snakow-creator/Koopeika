@@ -31,7 +31,7 @@ async def main() -> None:
 
         await scheduler.start_in_background()
         await scheduler.add_schedule(const_rates, CronTrigger(hour=0, minute=0), id="const_rates")
-        await scheduler.add_schedule(dinamic_cryptorates, IntervalTrigger(hours=1), id="dinamic_cryptorates")
+        await scheduler.add_schedule(dinamic_cryptorates, IntervalTrigger(minutes=5), id="dinamic_cryptorates")
 
         start_logging()
         await async_main()

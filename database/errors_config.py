@@ -7,6 +7,12 @@ class BadUserIdError(BaseException):
         super().__init__(message)
 
 
+class ValueNotFoundError(BaseException):
+    def __init__(self):
+        message = "Криптовалюта не была найдена. Пожалуйста, укажите валюту в формате: <b>BTCUSDT</b>"
+        super().__init__(message)
+
+
 class BadMessageText(TypeError):
     def __init__(self):
         message = "Ошибка в получении сообщения, скорее всего вы ввели неприемлемый тип сообщения."

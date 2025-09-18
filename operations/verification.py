@@ -1,4 +1,6 @@
-from database.errors_config import BadMessageText, BadUserIdError, BigNumError
+from database.errors_config import BadMessageText, BadUserIdError, BigNumError, ValueNotFoundError
+
+from loggers.logs import log
 
 import database.online_config as oc
 
@@ -10,6 +12,14 @@ async def checker_id(delete_id, user_transactions):
         if delete_id in list_id:
             return transaction["amount"][0]
     raise BadUserIdError()
+
+
+async def checker_value(value: str):
+    if value[-4:] in ("USDT", "USDC"):
+        value = value[:-4]
+    if not oc.cryptorates.get(value, False):
+        raise ValueNotFoundError
+    return value
 
 
 async def checker_num(num: str, value: str, premium_user):

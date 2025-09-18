@@ -158,6 +158,32 @@ async def stars_input_value(callback: CallbackQuery, state: FSMContext):
     )
 
 
+# input cryptovalue
+@router.callback_query(F.data.startswith("input_crypto_"))
+async def input_crypto(callback: CallbackQuery, state: FSMContext):
+    await callback.answer("")
+    action = callback.data.split("_")[-1]
+    print(action)
+
+    if action == "add":
+        log.debug("Change value")
+        await state.set_state(Balance.input_crypto)
+    if action in ("con", "endcon"):
+        log.debug("Conversion")
+        await state.set_state(Con.input_crypto)
+
+    profile = Profile.get(callback.from_user.id)
+    action = callback.data.split("_")[-1]
+    profile.con_choise = action
+    profile.tr_message_id = callback.message.message_id
+    await callback.message.edit_text(
+        "Введите название криптовалюты:" \
+        "\n➖➖➖➖➖" \
+        "\nУказывайте название пожалуйста в формате <b>кодового названия</b>(например: BTCUSDT, ETHUSDT)",
+        reply_markup=kb.con.back_button(action),
+    )
+
+
 # save first value, input popular and full list values
 @router.callback_query(F.data.startswith("con_value_"))
 async def con_input_value(callback: CallbackQuery, state: FSMContext):

@@ -87,6 +87,8 @@ class con:
             buttons.append([
                 InlineKeyboardButton(text="Остальные валюты", callback_data=f"otherlist_value_{data}"),
             ])
+        buttons.append([InlineKeyboardButton(text="Указать криптовалюту в сообщениях",
+                                                callback_data=f"input_crypto_{data}")])
         return InlineKeyboardMarkup(inline_keyboard=buttons)
 
     @staticmethod
@@ -216,6 +218,11 @@ class con:
             ],
         ]
         return InlineKeyboardMarkup(inline_keyboard=buttons)
+
+    @staticmethod
+    def back_button(data = "con"):
+        button = [[InlineKeyboardButton(text="Назад⬅️", callback_data=f"value_back_{data}")]]
+        return InlineKeyboardMarkup(inline_keyboard=button)
 
     @staticmethod
     def crypto_values(max_coins, convertation=False) -> InlineKeyboardMarkup:

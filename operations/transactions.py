@@ -25,17 +25,17 @@ class ListTransactions:
         list_transactions = {}
         text = "<b>История транзакций:</b>\n"
         for ind, tr in enumerate(transactions, start=1):
-            time = await cls._format_time(tr.time, user.time_zone)
-            emoji = "🟩" if tr.amount[0] == "+" else "🟥"
+            time = await cls._format_time(tr["time"], user["time_zone"])
+            emoji = "🟩" if tr["amount"][0] == "+" else "🟥"
 
-            if tr.description:
-                second_line = f"\n<b>{tr.amount}{oc.values_symbols[user.style].get(tr.value, f' {tr.value[:3]}')}</b>({tr.description})"
+            if tr["description"]:
+                second_line = f"\n<b>{tr["amount"]}{oc.values_symbols[user["style"]].get(tr["value"], f' {tr["value"]}')}</b>({tr["description"]})"
             else:
                 second_line = (
-                    f"\n<b>{tr.amount}{oc.values_symbols[user.style].get(tr.value, f' {tr.value[:3]}')}</b>"
+                    f"\n<b>{tr["amount"]}{oc.values_symbols[user["style"]].get(tr["value"], f' {tr["value"]}')}</b>"
                 )
 
-            text += f"{ind}.{emoji} <b>{time}</b>" f"{second_line}" f"\nid: <code>{tr.id}</code>\n\n"
+            text += f"{ind}.{emoji} <b>{time}</b>" f"{second_line}" f"\nid: <code>{tr["id"]}</code>\n\n"
             if ind % 10 == 0:
                 list_transactions[ind / 10] = text
                 text = "<b>История транзакций:</b>\n"

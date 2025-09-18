@@ -1,12 +1,17 @@
-from sqlalchemy import BigInteger, DateTime, ForeignKey, String, Integer, Boolean, DATETIME
+from sqlalchemy import BigInteger, DateTime, ForeignKey, String, Integer, Boolean, Float, text
 from sqlalchemy.ext.asyncio import AsyncAttrs, async_sessionmaker, create_async_engine
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
+from sqlalchemy.sql.functions import current_timestamp
 
 from datetime import datetime, timezone
 
+from secret.config import settings
 
-async_engine = create_async_engine(url="sqlite+aiosqlite:///dp.sqlite3")
-async_session = async_sessionmaker(async_engine)  # делаем асихронные переменные
+
+async_engine = create_async_engine(url=settings.postgres_get_database())
+async_session = async_sessionmaker(async_engine)
+async_lite_engine = create_async_engine(url="sqlite+aiosqlite:///dp.sqlite3")
+async_lite_session = async_sessionmaker(async_lite_engine)
 
 
 class Base(AsyncAttrs, DeclarativeBase):
@@ -17,13 +22,13 @@ class User(Base):
     __tablename__ = "users"
     # add input fields to the database
     id: Mapped[int] = mapped_column(primary_key=True)
-    tg_id: Mapped[str] = mapped_column(String(20), unique=True)
-    full_balance = mapped_column(BigInteger, nullable=False)
+    tg_id: Mapped[int] = mapped_column(BigInteger, nullable=False, unique=True)
+    full_balance = mapped_column(String(101), nullable=False)
     registered: Mapped[DateTime] = mapped_column(
-        DATETIME, nullable=False, default=datetime.now(timezone.utc)
+        DateTime, nullable=False, server_default=current_timestamp()
     )
     premium_until: Mapped[DateTime] = mapped_column(
-        DATETIME, nullable=True, default=datetime.now(timezone.utc)
+        DateTime, nullable=True, server_default=current_timestamp()
     )
     time_zone: Mapped[str] = mapped_column(String(4))
     value: Mapped[str] = mapped_column(String(7))
@@ -40,11 +45,12 @@ class Transaction(Base):
     __tablename__ = "transactions"
     # add input fields to the database
     id: Mapped[int] = mapped_column(primary_key=True)
-    user_id: Mapped[str] = mapped_column(ForeignKey("users.tg_id"))
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.tg_id"))
     value: Mapped[str] = mapped_column(String(7))
     amount: Mapped[str] = mapped_column(String(34))
     time: Mapped[str] = mapped_column(String(16))
     description: Mapped[str] = mapped_column(String(30))
+    closed: Mapped[bool] = mapped_column(Boolean, server_default=text("FALSE"), nullable=True)
 
     user = relationship("User", back_populates="transactions")
 
@@ -53,11 +59,11 @@ class Payment(Base):
     __tablename__ = "payments"
     # add input fields to the database
     id: Mapped[int] = mapped_column(primary_key=True)
-    user_id: Mapped[str] = mapped_column(ForeignKey("users.tg_id"))
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.tg_id"))
     transaction_uid: Mapped[str] = mapped_column(String, nullable=False, unique=True)
     title: Mapped[str] = mapped_column(String(40), nullable=False)
-    added: Mapped[DateTime] = mapped_column(DATETIME, nullable=False, default=datetime.now(timezone.utc))
-    closed: Mapped[bool] = mapped_column(Boolean, default=False)
+    added: Mapped[DateTime] = mapped_column(DateTime, nullable=False, server_default=current_timestamp())
+    closed: Mapped[bool] = mapped_column(Boolean, server_default=text("FALSE"))
 
     user = relationship("User", back_populates="payments")
 
@@ -66,3 +72,13 @@ class Payment(Base):
 async def async_main():
     async with async_engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+
+
+async def lite_main():
+    async with async_lite_engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+
+
+async def delete_all():
+    async with async_engine.begin() as conn:
+        await conn.run_sync(Base.metadata.drop_all)

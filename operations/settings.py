@@ -26,7 +26,7 @@ async def time_zone_edit(action, tg_id):
 
 async def default_value_edit(action, tg_id):
     await rq.Edit.value(tg_id, action)
-    text = f"Вы изменили валюту на <b>{action}</b>({oc.values[action]})"
+    text = f"Вы изменили валюту на <b>{action}</b>({oc.values.get(action, action[:3])})"
     return text
 
 
@@ -52,17 +52,17 @@ async def settings_user_info(premium, user_id):
     user_obj = await rq.SelectUser.load(user_id)
     user = user_obj.user
     text = (
-        f"Информация:\n"
+        f"<b>Информация:</b>\n"
         f"➖➖➖➖➖\n"
-        f"Часовой пояс: <b>{user.time_zone}</b>\n"
-        f"Установленная валюта: <b>{user.value}</b>\n"
-        f"Стиль валют: <b>{oc.styles_keys[user.style]}</b>\n"
-        f"Кол-во чисел после запятой(фиат): <b>{user.fiat_amount}</b>\n"
-        f"Кол-во чисел после запятой(крипта): <b>{user.crypto_amount}</b>\n"
+        f"Часовой пояс: <b>{user["time_zone"]}</b>\n"
+        f"Установленная валюта: <b>{user["value"]}</b>\n"
+        f"Стиль валют: <b>{oc.styles_keys[user["style"]]}</b>\n"
+        f"Кол-во чисел после запятой(фиат): <b>{user["fiat_amount"]}</b>\n"
+        f"Кол-во чисел после запятой(крипта): <b>{user["crypto_amount"]}</b>\n"
     )
     if premium:
-        premium_time = datetime.strftime(user.premium_until, "%d.%m.%Y %H:%M")
-        text += (f"Список валют: <b>{oc.crypto_max_coins[user.crypto_max_coins]}</b>\n"
+        premium_time = datetime.strftime(user["premium_until"], "%d.%m.%Y %H:%M")
+        text += (f"Список валют: <b>{oc.crypto_max_coins[user["crypto_max_coins"]]}</b>\n"
                 f"Премиум действует до <b>{premium_time}</b>\n")
     text += f"\nТакже можете <a href='https://t.me/obotov'>подписаться</a> на наш канал и узнавать первыми о новых нововедениях бота."
     return text

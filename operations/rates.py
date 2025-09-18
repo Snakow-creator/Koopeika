@@ -40,7 +40,7 @@ async def get_cryptorates(list_currency: list):
 
 
 # add crypto to cryptolist
-async def parse_crypto_top(max_coins: int = 48):
+async def parse_crypto_top():
     din_cryptolist = []
     async with aiohttp.ClientSession() as session:
         url = CRYPTO_TOP_API
@@ -51,9 +51,7 @@ async def parse_crypto_top(max_coins: int = 48):
                 log.error(f"Error with parsing data: {response.status}")
             symbols_list = [coin["symbol"] for coin in data if float(coin["lastPrice"])]
             for coin in symbols_list:
-                if len(din_cryptolist) == max_coins:
-                    break
-                elif coin[-4:] == "USDT" and coin[:-4] not in static_cryptolist:
+                if coin[-4:] == "USDT" and coin[:-4] not in static_cryptolist:
                     din_cryptolist.append(coin[:-4])
             dinamic_cryptolist = static_cryptolist + din_cryptolist
             return dinamic_cryptolist
@@ -62,7 +60,5 @@ async def parse_crypto_top(max_coins: int = 48):
 # get data cryptorates
 async def cryptorates():
     dinamic_cryptolist = await parse_crypto_top()
-    rq_values = await rq.Transactions.get_values()
-    full_list = dinamic_cryptolist + rq_values
-    crates = await get_cryptorates(full_list)
+    crates = await get_cryptorates(dinamic_cryptolist)
     return crates

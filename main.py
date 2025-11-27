@@ -10,7 +10,6 @@ from commands import callbacks, handlers, states, payments
 from commands.schedulers import const_rates, dinamic_cryptorates
 from database.models import async_main
 from loggers.antiflood import AntiFloodMiddleware
-from loggers.check_subscribe import CheckSubscribtion
 from loggers.logs import start_logging, log
 from secret.config import BOT_PROPERTIES, TOKEN
 

@@ -54,15 +54,15 @@ async def settings_user_info(premium, user_id):
     text = (
         f"<b>Информация:</b>\n"
         f"➖➖➖➖➖\n"
-        f"Часовой пояс: <b>{user["time_zone"]}</b>\n"
-        f"Установленная валюта: <b>{user["value"]}</b>\n"
-        f"Стиль валют: <b>{oc.styles_keys[user["style"]]}</b>\n"
-        f"Кол-во чисел после запятой(фиат): <b>{user["fiat_amount"]}</b>\n"
-        f"Кол-во чисел после запятой(крипта): <b>{user["crypto_amount"]}</b>\n"
+        f"Часовой пояс: <b>{user['time_zone']}</b>\n"
+        f"Установленная валюта: <b>{user['value']}</b>\n"
+        f"Стиль валют: <b>{oc.styles_keys[user['style']]}</b>\n"
+        f"Кол-во чисел после запятой(фиат): <b>{user['fiat_amount']}</b>\n"
+        f"Кол-во чисел после запятой(крипта): <b>{user['crypto_amount']}</b>\n"
     )
     if premium:
         premium_time = datetime.strftime(user["premium_until"], "%d.%m.%Y %H:%M")
-        text += (f"Список валют: <b>{oc.crypto_max_coins[user["crypto_max_coins"]]}</b>\n"
+        text += (f"Список валют: <b>{oc.crypto_max_coins[user['crypto_max_coins']]}</b>\n"
                 f"Премиум действует до <b>{premium_time}</b>\n")
     text += f"\nТакже можете <a href='https://t.me/obotov'>подписаться</a> на наш канал и узнавать первыми о новых нововедениях бота."
     return text

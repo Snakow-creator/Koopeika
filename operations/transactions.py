@@ -27,15 +27,18 @@ class ListTransactions:
         for ind, tr in enumerate(transactions, start=1):
             time = await cls._format_time(tr["time"], user["time_zone"])
             emoji = "🟩" if tr["amount"][0] == "+" else "🟥"
+            value = oc.values_symbols[user['style']].get(tr['value'], f" {tr['value']}")
 
             if tr["description"]:
-                second_line = f"\n<b>{tr["amount"]}{oc.values_symbols[user["style"]].get(tr["value"], f' {tr["value"]}')}</b>({tr["description"]})"
+                second_line = (
+                    f"\n<b>{tr['amount']}{value}</b>({tr['description']})"
+                )
             else:
                 second_line = (
-                    f"\n<b>{tr["amount"]}{oc.values_symbols[user["style"]].get(tr["value"], f' {tr["value"]}')}</b>"
+                    f"\n<b>{tr['amount']}{value}</b>"
                 )
 
-            text += f"{ind}.{emoji} <b>{time}</b>" f"{second_line}" f"\nid: <code>{tr["id"]}</code>\n\n"
+            text += f"{ind}.{emoji} <b>{time}</b>" f"{second_line}" f"\nid: <code>{tr['id']}</code>\n\n"
             if ind % 10 == 0:
                 list_transactions[ind / 10] = text
                 text = "<b>История транзакций:</b>\n"

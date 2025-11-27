@@ -111,7 +111,7 @@ class Transactions(SelectUser):
             time,
             description,
         )
-        log.debug(f"Add transaction {self.user["tg_id"]}")
+        log.debug(f"Add transaction {self.user['tg_id']}")
         await conn.close()
 
     async def edit(self, value: float, num_id: int):
@@ -204,7 +204,7 @@ class Balance:
         conn = await connect()
         user = await conn.fetchrow("SELECT * FROM users WHERE tg_id = $1", tg_id)
         await conn.execute("UPDATE users SET full_balance = $1 WHERE tg_id = $2", amount, tg_id)
-        log.debug(f"Edit balance {user["tg_id"]}")
+        log.debug(f"Edit balance {user['tg_id']}")
         await conn.close()
 
 

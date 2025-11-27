@@ -227,7 +227,7 @@ async def con_input_value(callback: CallbackQuery, state: FSMContext):
     oc.msg[user_id] = await callback.message.edit_text(
         f"{text}\nУкажите количество валюты, которое вы хотите конвертировать:"
         f"\nИли нажмите на число ниже⬇️",
-        reply_markup=kb.con.input_numbers(oc.values_symbols[user["style"]].get(value, f" {value}")),
+        reply_markup=kb.con.input_numbers(oc.values_symbols[user["style"]].get(value, f' {value}')),
     )
 
 
@@ -244,7 +244,7 @@ async def con_fast_input_second_value(callback: CallbackQuery, state: FSMContext
     premium_user = await user_obj.premium()
     profile.amount = int(action)
     profile.text = (
-        f"Вы указали: <b>{int(action)}{oc.values_symbols[user["style"]].get(value, f' {value}')}</b>."
+        f"Вы указали: <b>{int(action)}{oc.values_symbols[user['style']].get(value, f' {value}')}</b>."
         f"\nВыберите валюту, в которую требуется конвертировать сумму⬇️"
     )
     if value[0:2] == "⭐️":

@@ -25,8 +25,8 @@ async def checker_value(value: str):
 async def checker_num(num: str, value: str, premium_user):
     try:
         float(num)  # check num to float
-
         max_num = oc.max_num_values.get(value, 1_000_000_000)
+
         if premium_user:
             max_num = oc.max_num_values_premium.get(value, 1_000_000_000_000)
         if float(num) > max_num:
@@ -52,6 +52,8 @@ async def checker_con_num(num: str, value: str, premium_user):
 
 
 async def int_or_float(num: str):
+    # if . in str num
     if num.find(".") != -1:
         return float(num)
+
     return int(num)

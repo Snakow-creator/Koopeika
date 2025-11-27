@@ -45,7 +45,7 @@ async def create_user(users):
             ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
         """,
             int(user.tg_id),
-            user.full_balance,
+            str(user.full_balance),
             user.registered,
             user.premium_until,
             user.time_zone,

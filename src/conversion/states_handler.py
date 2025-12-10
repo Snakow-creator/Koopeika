@@ -6,7 +6,7 @@ from config import conf, profile
 from core.exceptions import BadMessageText, ValueNotFoundError
 from users import user_req
 
-from keyboards import con
+from keyboards import con, main_menu
 from states import conversion_state
 from conversion.converter import Conversion
 from middlewares.logger import log
@@ -55,7 +55,7 @@ async def input_crypto(message: Message, state: FSMContext):
             log.debug(f"Conversion {message.from_user.id}")
             await message.answer(result.text(from_symbol, to_symbol))
     except ValueNotFoundError as ex:
-        await message.answer(f"{ex}")
+        await message.answer(f"{ex}", reply_markup=main_menu)
 
 
 @router.message(conversion_state.input_number)
@@ -85,7 +85,7 @@ async def con_input_second_number(message: Message, state: FSMContext):
             reply_markup=keyboard,
         )
     except BadMessageText as ex:
-        await message.answer(f"{ex}")
+        await message.answer(f"{ex}", reply_markup=main_menu)
 
     finally:
         await state.clear()

@@ -7,6 +7,7 @@ from settings import edit_req
 from payments.request import Payments as payment_req
 from middlewares.logger import log
 
+from keyboards import seg
 from payments.payment import give_premium_month
 
 
@@ -69,5 +70,5 @@ async def сmd_refund(message: Message, bot: Bot, command: CommandObject):
                 text = "Транзакция не была найдена"
                 log.error(f"{error.message}: Транзакция не была найдена {transaction_id}")
 
-            await message.answer(text)
+            await message.answer(text, reply_markup=seg.main_menu())
             return

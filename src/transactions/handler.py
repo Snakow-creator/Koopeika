@@ -25,6 +25,6 @@ async def transactions_handler(callback: CallbackQuery):
         )
     # if tx is lower than 10
     else:
-        await callback.message.edit_text(tx, reply_markup=trx.transactions_paginator())
+        await callback.message.edit_text(tx, reply_markup=trx.transactions_paginator(callback, pages=False))
 
     log.debug(f"Check history transactions {callback.from_user.id}")

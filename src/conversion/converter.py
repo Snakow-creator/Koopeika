@@ -166,6 +166,7 @@ class Convert_Balance(Conversion):
         # create objects
         result = 0
         assets_balance = {}
+        assets_convert = {}
 
         # add asset to assets_balance
         async def add_asset(asset, amount, op):
@@ -176,6 +177,16 @@ class Convert_Balance(Conversion):
                     assets_balance[asset] -= amount
             else:
                 assets_balance[asset] = amount
+
+        # add asset to assets_convert
+        async def add_convert_asset(asset, amount, op):
+            if asset in assets_convert:
+                if op == '+':
+                    assets_convert[asset] += amount
+                elif op == '-':
+                    assets_convert[asset] -= amount
+            else:
+                assets_convert[asset] = amount
 
          # get transactions and check their
         trs_obj = await transaction_req.load(tg_id)
@@ -189,18 +200,22 @@ class Convert_Balance(Conversion):
             convert_amount = await cls._current_currency(
                 from_value, to_value, amount, rates
             )
-            if op == "+":
-                result += float(convert_amount)
-            elif op == "-":
-                result -= float(convert_amount)
+            convert_amount = float(convert_amount)
 
+            if op == "+":
+                result += convert_amount
+            elif op == "-":
+                result -= convert_amount
+            # add data to dict assets
             await add_asset(from_value, amount, op)
+            await add_convert_asset(from_value, convert_amount, op)
 
         # get assets_share
-        assets_share = await cls._get_assets_share(assets_balance, result)
+        assets_share = await cls._get_assets_share(assets_convert, result)
 
         log.debug(f"Balance: {result}")
         log.debug(f"Assets balance: {assets_balance.items()}")
+        log.debug(f"Assets convert: {assets_convert.items()}")
         log.debug(f"Assets share: {assets_share.items()}")
 
         result = "{:,.2f}".format(result)

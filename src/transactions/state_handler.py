@@ -35,10 +35,10 @@ async def transaction_edit(message: Message, state: FSMContext):
         await message.answer("Напишите айди транзакции:")
 
     except BadMessageText as ex:
-        await message.answer(f"{ex}")
+        await message.answer(f"{ex}", reply_markup=main_menu)
         await state.clear()
     except BigNumError as ex:
-        await message.answer(f"{ex}")
+        await message.answer(f"{ex}", reply_markup=main_menu)
         await state.clear()
 
 
@@ -57,7 +57,7 @@ async def transaction_edit_result(message: Message, state: FSMContext):
         log.debug(f"Edit transaction {message.from_user.id}")
 
     except BadUserIdError as ex:
-        await message.answer(f"{ex}")
+        await message.answer(f"{ex}", reply_markup=main_menu)
     finally:
         await state.clear()
 
@@ -73,6 +73,6 @@ async def transaction_delete(message: Message, state: FSMContext):
         log.debug(f"Delete transaction {message.from_user.id}")
 
     except BadUserIdError as ex:
-        await message.answer(f"{ex}")
+        await message.answer(f"{ex}", reply_markup=main_menu)
     finally:
         await state.clear()

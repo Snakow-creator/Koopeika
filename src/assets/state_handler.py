@@ -78,11 +78,11 @@ async def add_assets(message: Message, state: FSMContext):
         )
 
     except BadMessageText as ex:
-        await message.answer(f"{ex}")
+        await message.answer(f"{ex}", reply_markup=main_menu)
         await state.clear()
 
     except BigNumError as ex:
-        await message.answer(f"{ex}")
+        await message.answer(f"{ex}", reply_markup=main_menu)
         await state.clear()
 
 

@@ -38,7 +38,7 @@ async def check_list_transactions(callback: CallbackQuery):
 
         await callback.message.edit_text(
             transactions,
-            reply_markup=trx.transactions_paginator(user_id),
+            reply_markup=trx.transactions_paginator(user_id, pages=True),
         )
         log.debug(f"Check history transactions {user_id}, page: {page}")
 

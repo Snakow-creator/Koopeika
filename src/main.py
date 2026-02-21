@@ -16,7 +16,7 @@ from rates.schedulers import const_rates, dinamic_cryptorates
 
 import asyncio
 
-# test update
+
 bot = Bot(token=TOKEN, default=BOT_PROPERTIES)
 dp = Dispatcher()
 

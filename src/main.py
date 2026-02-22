@@ -20,7 +20,7 @@ import asyncio
 bot = Bot(token=TOKEN, default=BOT_PROPERTIES)
 dp = Dispatcher()
 
-
+# test
 @dp.error()
 async def global_error_handler(event: ErrorEvent) -> None:
     log.error(f"{event.exception}", exc_info=True)

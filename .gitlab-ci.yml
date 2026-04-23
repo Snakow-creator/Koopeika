@@ -6,17 +6,17 @@ stages:
 
 build-job:
   stage: build
-  script: 
+  script:
     - docker build -t koopeika_image .
 
 
-# test-job:
-#   stage: test
-#   script: 
-    # - docker run --rm koopeika_image pytest -s -v
+test-job:
+  stage: test
+  script:
+    - docker run --rm koopeika_image python -m compileall .
 
 
 deploy_job:
   stage: deploy
-  script: 
+  script:
     - docker compose up -d

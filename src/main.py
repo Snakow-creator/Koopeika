@@ -26,7 +26,7 @@ async def global_error_handler(event: ErrorEvent) -> None:
     log.error(f"{event.exception}", exc_info=True)
 
 
-async def main():dfsdfsfs
+async def main():
     async with AsyncScheduler() as scheduler:
         # set middlewares
         dp.message.middleware(AntiFloodMiddleware())

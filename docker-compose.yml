@@ -1,0 +1,5 @@
+services:
+  backend:
+    image: koopeika_image:latest
+    container_name: koopeika_container
+    command: "python main.py"

@@ -13,7 +13,7 @@ build-job:
 test-job:
   stage: test
   script:
-    - docker run --rm koopeika_image python -m compileall .
+    - docker run --rm koopeika_image python -m compileall -v src
 
 
 deploy_job:

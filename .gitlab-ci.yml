@@ -8,7 +8,7 @@ cache:
 stages:
   - stage_build
   - stage_test
-  # - stage_deploy
+  - stage_deploy
 
 variables:
   PYTHON_VERSION: "3.12"

@@ -34,7 +34,7 @@ deploy_to_dev_job:
     - echo "––– Deploy Completed –––"
     - cat $LOG_FILE_NAME
 
-
+# fasd
 # stages:
 #   - stage_build
 #   - stage_test

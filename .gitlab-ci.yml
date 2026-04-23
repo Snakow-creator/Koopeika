@@ -52,8 +52,8 @@ default:
   image: python:3.12
   before_script:
     - python3 -V
-    - pip install --upgrade pip
-    - pip install -r requirements.txt
+    - pip3 install --upgrade pip
+    - pip3 install -r requirements.txt
 
 # =========================
 # BUILD
@@ -62,7 +62,7 @@ build_job:
   stage: stage_build
   script:
     - echo "Build stage started"
-    - python -m compileall .
+    - python3 -m compileall .
   artifacts:
     paths:
       - .

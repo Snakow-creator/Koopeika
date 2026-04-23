@@ -1,90 +1,90 @@
-stages: 
-  - stage_build
-  - stage_test
-  - stage_deploy
-
-
-variables:
-  NAME: Snakow_creator
-  CICD_VERSION: v1.0
-  LOG_FILE_NAME: log.txt
-
-
-build_job:
-  stage: stage_build
-  script:
-    - echo "––– Build Started –––"
-    - echo "Building..." >> $LOG_FILE_NAME
-    - echo "––– Build Completed –––"
-
-
-test_job:
-  stage: stage_test
-  script:
-    - echo "––– Test Started –––"
-    - echo "Testing..." >> $LOG_FILE_NAME
-    - echo "––– Test Completed –––"
-
-
-deploy_to_dev_job:
-  stage: stage_deploy
-  script:
-    - echo "––– Deploy Started –––"
-    - echo "Deploy to Dev" >> $LOG_FILE_NAME
-    - echo "––– Deploy Completed –––"
-    - cat $LOG_FILE_NAME
-
-# test
-# stages:
+# stages: 
 #   - stage_build
 #   - stage_test
-#   # - stage_deploy
+#   - stage_deploy
+
 
 # variables:
-#   PYTHON_VERSION: "3.12"
-#   POSTGRES_DB: test_db
-#   POSTGRES_USER: test_user
-#   POSTGRES_PASSWORD: test_password
-#   POSTGRES_HOST: postgres
-#   POSTGRES_PORT: 5432
+#   NAME: Snakow_creator
+#   CICD_VERSION: v1.0
+#   LOG_FILE_NAME: log.txt
 
-# default:
-#   image: python:3.12
-#   before_script:
-#     - python -V
-#     - pip install --upgrade pip
-#     - pip install -r requirements.txt
 
-# # =========================
-# # BUILD
-# # =========================
 # build_job:
 #   stage: stage_build
 #   script:
-#     - echo "Build stage started"
-#     - python -m compileall .
-#   artifacts:
-#     paths:
-#       - .
-#     expire_in: 1 hour
+#     - echo "––– Build Started –––"
+#     - echo "Building..." >> $LOG_FILE_NAME
+#     - echo "––– Build Completed –––"
 
-# # =========================
-# # TEST
-# # =========================
+
 # test_job:
 #   stage: stage_test
-#   services:
-#     - name: postgres:15
-#       alias: postgres
-#   variables:
-#     DATABASE_URL: postgresql://test_user:test_password@postgres:5432/test_db
 #   script:
-#     - echo "Waiting for postgres..."
-#     - apt-get update && apt-get install -y postgresql-client
-#     - until pg_isready -h postgres -p 5432; do sleep 1; done
-#     - pytest
-#   dependencies:
-#     - build_job
+#     - echo "––– Test Started –––"
+#     - echo "Testing..." >> $LOG_FILE_NAME
+#     - echo "––– Test Completed –––"
+
+
+# deploy_to_dev_job:
+#   stage: stage_deploy
+#   script:
+#     - echo "––– Deploy Started –––"
+#     - echo "Deploy to Dev" >> $LOG_FILE_NAME
+#     - echo "––– Deploy Completed –––"
+#     - cat $LOG_FILE_NAME
+
+# test
+stages:
+  - stage_build
+  - stage_test
+  # - stage_deploy
+
+variables:
+  PYTHON_VERSION: "3.12"
+  POSTGRES_DB: test_db
+  POSTGRES_USER: test_user
+  POSTGRES_PASSWORD: test_password
+  POSTGRES_HOST: postgres
+  POSTGRES_PORT: 5432
+
+default:
+  image: python:3.12
+  before_script:
+    - python -V
+    - pip install --upgrade pip
+    - pip install -r requirements.txt
+
+# =========================
+# BUILD
+# =========================
+build_job:
+  stage: stage_build
+  script:
+    - echo "Build stage started"
+    - python -m compileall .
+  artifacts:
+    paths:
+      - .
+    expire_in: 1 hour
+
+# =========================
+# TEST
+# =========================
+test_job:
+  stage: stage_test
+  services:
+    - name: postgres:15
+      alias: postgres
+  variables:
+    DATABASE_URL: postgresql://test_user:test_password@postgres:5432/test_db
+  script:
+    - echo "Waiting for postgres..."
+    - apt-get update && apt-get install -y postgresql-client
+    - until pg_isready -h postgres -p 5432; do sleep 1; done
+    - pytest
+  dependencies:
+    - build_job
 
 # =========================
 # DEPLOY

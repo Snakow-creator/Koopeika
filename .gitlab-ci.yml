@@ -21,7 +21,8 @@ variables:
 default:
   before_script:
     - python3 -V
-    - pip install --upgrade pip
+    - python3 -m ensurepip --upgrade || true
+    - python3 -m pip install --upgrade pip
     - pip install -r requirements.txt
 
 # =========================

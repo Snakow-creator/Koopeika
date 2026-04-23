@@ -25,6 +25,8 @@ dp = Dispatcher()
 async def global_error_handler(event: ErrorEvent) -> None:
     log.error(f"{event.exception}", exc_info=True)
 
+    фывыввф
+
 
 async def main():
     async with AsyncScheduler() as scheduler:

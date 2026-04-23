@@ -58,25 +58,25 @@ test_job:
 # =========================
 # DEPLOY
 # =========================
-# deploy_job:
-#   stage: stage_deploy
-#   image: alpine:latest
-#   only:
-#     - main
-#   before_script:
-#     - apk add --no-cache openssh-client rsync
-#     - mkdir -p ~/.ssh
-#     - echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
-#     - chmod 600 ~/.ssh/id_rsa
-#     - ssh-keyscan -H $SERVER_HOST >> ~/.ssh/known_hosts
-#   script:
-#     - echo "Deploying to server..."
-#     - rsync -avz --delete ./ $SERVER_USER@$SERVER_HOST:$SERVER_PATH
-#     - ssh $SERVER_USER@$SERVER_HOST "
-#         cd $SERVER_PATH &&
-#         source venv/bin/activate &&
-#         pip install -r requirements.txt &&
-#         systemctl restart your_bot.service
-#       "
-#   dependencies:
-#     - test_job
+deploy_job:
+  stage: stage_deploy
+  image: alpine:latest
+  only:
+    - main
+  before_script:
+    - apk add --no-cache openssh-client rsync
+    - mkdir -p ~/.ssh
+    - echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
+    - chmod 600 ~/.ssh/id_rsa
+    - ssh-keyscan -H $SERVER_HOST >> ~/.ssh/known_hosts
+  script:
+    - echo "Deploying to server..."
+    - rsync -avz --delete ./ $SERVER_USER@$SERVER_HOST:$SERVER_PATH
+    - ssh $SERVER_USER@$SERVER_HOST "
+        cd $SERVER_PATH &&
+        source venv/bin/activate &&
+        pip install -r requirements.txt &&
+        systemctl restart your_bot.service
+      "
+  dependencies:
+    - test_job

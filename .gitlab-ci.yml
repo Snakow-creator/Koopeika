@@ -1,39 +1,3 @@
-# stages: 
-#   - stage_build
-#   - stage_test
-#   - stage_deploy
-
-
-# variables:
-#   NAME: Snakow_creator
-#   CICD_VERSION: v1.0
-#   LOG_FILE_NAME: log.txt
-
-
-# build_job:
-#   stage: stage_build
-#   script:
-#     - echo "––– Build Started –––"
-#     - echo "Building..." >> $LOG_FILE_NAME
-#     - echo "––– Build Completed –––"
-
-
-# test_job:
-#   stage: stage_test
-#   script:
-#     - echo "––– Test Started –––"
-#     - echo "Testing..." >> $LOG_FILE_NAME
-#     - echo "––– Test Completed –––"
-
-
-# deploy_to_dev_job:
-#   stage: stage_deploy
-#   script:
-#     - echo "––– Deploy Started –––"
-#     - echo "Deploy to Dev" >> $LOG_FILE_NAME
-#     - echo "––– Deploy Completed –––"
-#     - cat $LOG_FILE_NAME
-
 # test
 stages:
   - stage_build
@@ -52,8 +16,8 @@ default:
   image: python:3.12
   before_script:
     - python3 -V
-    - pip3 install --upgrade pip
-    - pip3 install -r requirements.txt
+    - python3 -m pip install --upgrade pip
+    - pip install -r requirements.txt
 
 # =========================
 # BUILD

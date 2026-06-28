@@ -12,11 +12,13 @@ class Profile:
         self.con_value: str = None
         self.transactions = None
         self.transactions_page: int = 1
+        self.trs_edit_page: int = 1
         self.tr_message_id: str = None
         self.assets_balance: dict = {}
         self.assets_share: dict = {}
 
         Profile._storage[self.tg_id] = self
+
 
     @classmethod
     def get(cls, user_id):

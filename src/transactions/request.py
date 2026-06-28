@@ -34,6 +34,23 @@ class Transactions(Users):
         await conn.close()
         return cls(tg_id, user, transactions)
 
+    @staticmethod
+    async def get_to_id(tg_id, tr_id):
+        conn = await connect()
+        transaction = await conn.fetchrow(
+            """
+                SELECT *
+                FROM transactions
+                WHERE id = $1
+                AND user_id = $2
+            """,
+            int(tr_id),
+            tg_id,
+        )
+        await conn.close()
+
+        return transaction
+
     async def add(self, value, assets, description):
         conn = await connect()
         if len(description) >= 30:

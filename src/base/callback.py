@@ -13,6 +13,7 @@ from base.keyboard import start_keyboard
 
 router = Router()
 
+# functions of services
 main_actions = {
     "balance": balance_handler,
     "conversion": conversion_handler,
@@ -38,6 +39,6 @@ async def callback_main(callback: CallbackQuery):
     await callback.answer()
 
     action = callback.data.split("_")[1]
-    func_handler = main_actions[action]
+    func_handler = main_actions[action] # get function
 
     await func_handler(callback)

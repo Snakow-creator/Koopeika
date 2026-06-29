@@ -52,9 +52,20 @@ class TransactionsKeyboard:
     def edit_transaction(id) -> InlineKeyboardMarkup:
         buttons = [
             [
-                InlineKeyboardButton(text="Изменить сумму✏️", callback_data=f"edit_transaction_assets_{id}"),
-                InlineKeyboardButton(text="Удалить транзакцию🗑", callback_data=f"edit_transaction_delete_{id}"),
+                InlineKeyboardButton(text="Изменить сумму✏️", callback_data=f"change_transaction_assets_{id}"),
+                InlineKeyboardButton(text="Удалить транзакцию🗑", callback_data=f"change_transaction_delete_{id}"),
             ],
-            [InlineKeyboardButton(text="Назад⬅️", callback_data="back_to_transactions")]
+            [InlineKeyboardButton(text="Назад⬅️", callback_data="back_to_edit_transactions")]
+        ]
+        return InlineKeyboardMarkup(inline_keyboard=buttons)
+
+    @staticmethod
+    def confirm_transaction(id):
+        buttons = [
+            [
+                InlineKeyboardButton(text="Подтвердить✅", callback_data=f"confirm_transaction_delete_{id}"),
+                InlineKeyboardButton(text="Отменить❌", callback_data=f"cancel_transaction_delete_{id}"),
+            ],
+            [InlineKeyboardButton(text="Назад⬅️", callback_data="back_to_edit_transactions")]
         ]
         return InlineKeyboardMarkup(inline_keyboard=buttons)

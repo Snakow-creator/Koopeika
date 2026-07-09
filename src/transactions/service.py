@@ -9,7 +9,7 @@ from users import user_req
 from core.exceptions import PageError
 from config import profile
 
-from middlewares.logger import log
+from tasks.logger import log
 
 
 class ListTransactions:

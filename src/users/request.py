@@ -4,7 +4,7 @@ from models.models import User, user_obj
 from core.request import connect
 from config.models import bu
 
-from middlewares.logger import log
+from tasks.logger import log
 
 
 class Users:

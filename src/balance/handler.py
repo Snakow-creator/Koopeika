@@ -4,7 +4,7 @@ from config import conf, profile
 from users import user_req
 
 from conversion import conv_balance
-from middlewares.logger import log
+from tasks.logger import log
 from keyboards import dinamic_assets
 
 

@@ -5,7 +5,7 @@ from aiogram.fsm.context import FSMContext
 from config import profile, conf
 from users import user_req
 
-from middlewares.logger import log
+from tasks.logger import log
 from states import balance_state, conversion_state
 from keyboards import con, main_menu
 

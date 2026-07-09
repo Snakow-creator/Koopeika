@@ -9,7 +9,7 @@ from transactions import transaction_req
 from config import profile
 
 from utils import checker_num, checker_id
-from middlewares.logger import log
+from tasks.logger import log
 from base.keyboard import main_menu
 
 
@@ -34,7 +34,7 @@ async def transaction_edit(message: Message, state: FSMContext):
         await checker_num(message.text, user["value"], premium_user)
 
         # edit transaction
-        amount = float(message.text)
+        amount = int(message.text)
 
         log.debug("False")
         await transaction.edit(value=amount, num_id=tr_id)

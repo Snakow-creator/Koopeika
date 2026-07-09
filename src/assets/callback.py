@@ -8,7 +8,7 @@ from transactions import transaction_req
 
 from keyboards import con, seg
 from base.keyboard import main_menu
-from middlewares.logger import log
+from tasks.logger import log
 from states import balance_state
 from core.exceptions import ManyTransactionsError
 

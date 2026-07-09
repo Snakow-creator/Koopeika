@@ -4,7 +4,7 @@ from aiogram.types import CallbackQuery
 from settings import profile_handler, edit_req
 
 from keyboards import con, seg
-from middlewares.logger import log
+from tasks.logger import log
 from payments.payment import payment_stars
 from user_profile.handler import (value_handler, nums_handler,
                                   cryptomaxcoins_handler, premium_handler)

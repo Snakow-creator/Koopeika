@@ -1,15 +1,14 @@
 from core.exceptions import BadMessageText, BadUserIdError, BigNumError, ValueNotFoundError
 from config import conf
 
-from middlewares.logger import log
+from tasks.logger import log
 
 
-async def checker_id(changed_id, user_transactions):
-    list_id = []
+def checker_id(id: int, user_transactions):
     for transaction in user_transactions:
-        list_id.append(transaction["id"])
-        if changed_id in list_id:
-            return transaction["amount"][0]
+        if id == transaction["id"]:
+            log.debug(f"Truly checked id: {id}")
+            return transaction["amount"][0] # get operation + or -
     raise BadUserIdError()
 
 

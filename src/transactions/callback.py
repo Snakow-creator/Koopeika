@@ -7,7 +7,7 @@ from core.exceptions import PageError
 
 from keyboards import trx
 from states import transaction_state
-from middlewares.logger import log
+from tasks.logger import log
 from transactions.handler import transactions_handler, edit_transactions_handler
 from transactions import transaction_req
 from base.keyboard import main_menu
@@ -115,10 +115,10 @@ async def edit_transaction(callback: CallbackQuery, state: FSMContext):
     if action == "assets":
         prof = profile.get(callback.from_user.id)
         prof.tr_message_id = id
-        await state.set_state(transaction_state.edit)
         await callback.message.edit_text(
             f"Напишите актуальную сумму своих активов/убытков для транзакции {id}:"
         )
+        await state.set_state(transaction_state.edit)
     elif action == "delete":
         await callback.message.edit_text(
             "Подтвердите удаление транзакции:",

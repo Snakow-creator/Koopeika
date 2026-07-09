@@ -5,7 +5,7 @@ from transactions import transaction_req
 from balance import balance_req
 from config import conf
 
-from middlewares.logger import log
+from tasks.logger import log
 
 
 class Conversion:

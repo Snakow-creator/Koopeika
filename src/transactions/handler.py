@@ -3,7 +3,7 @@ from aiogram.types import CallbackQuery
 from transactions import transaction_req, list_transactions
 from config import profile
 
-from middlewares.logger import log
+from tasks.logger import log
 from keyboards import trx, main_menu
 
 

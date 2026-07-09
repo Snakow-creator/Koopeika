@@ -1,6 +1,6 @@
 from core.request import connect
 
-from middlewares.logger import log
+from tasks.logger import log
 
 
 # operation static class with balance

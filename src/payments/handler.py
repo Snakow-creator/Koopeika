@@ -5,7 +5,7 @@ from aiogram.exceptions import TelegramBadRequest
 
 from settings import edit_req
 from payments.request import Payments as payment_req
-from middlewares.logger import log
+from tasks.logger import log
 
 from keyboards import seg
 from payments.payment import give_premium_month

@@ -7,7 +7,7 @@ from core.request import connect
 
 from core.exceptions import BigCommentError, ManyTransactionsError
 from utils.verification import checker_id
-from middlewares.logger import log
+from tasks.logger import log
 
 
 class Transactions(Users):
@@ -82,8 +82,7 @@ class Transactions(Users):
         await conn.close()
 
     async def edit(self, value: float, num_id: int):
-        # check exists user taransaction
-        op = await checker_id(num_id, self.transactions)
+        op = checker_id(int(num_id), self.transactions)
         conn = await connect()
         await conn.fetchrow(
             """
@@ -92,7 +91,7 @@ class Transactions(Users):
             WHERE id = $2
             """,
             op + str(value),
-            num_id,
+            int(num_id),
         )
         log.debug(f"Edit transaction {num_id}")
         await conn.close()

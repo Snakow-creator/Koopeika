@@ -9,7 +9,7 @@ from users import user_req
 from keyboards import con, main_menu
 from states import conversion_state
 from conversion.converter import Conversion
-from middlewares.logger import log
+from tasks.logger import log
 
 from utils import (checker_value, int_or_float, delete_message,
                    choise_value, checker_num)

@@ -1,4 +1,4 @@
-from middlewares.logger import log
+from tasks.logger import log
 from config import conf
 
 from rates.rates import get_exchange_rates

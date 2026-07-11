@@ -18,7 +18,7 @@ class ListTransactions:
         self.list_transactions = list_trs
         self.transactions = trs
 
-        prof = profile.get(tg_id)
+        prof = profile.get(tg_id, create=True)
         prof.transactions = self
         prof.transactions_page = 1
 

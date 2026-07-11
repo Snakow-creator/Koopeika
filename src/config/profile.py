@@ -1,3 +1,4 @@
+from core.exceptions import ProfileExpiredError
 from tasks.logger import log
 
 from time import time
@@ -26,11 +27,14 @@ class Profile:
 
 
     @classmethod
-    def get(cls, user_id):
+    def get(cls, user_id, create=False):
         user = cls._storage.get(user_id)
 
         if user is None:
-            user = cls(user_id)
+            if create:
+                user = cls(user_id)
+            else:
+                raise ProfileExpiredError()
 
         user.last_activity = time() # save time of change object
         return user

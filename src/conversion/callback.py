@@ -93,7 +93,7 @@ async def stars_input_value(callback: CallbackQuery, state: FSMContext):
 @router.callback_query(F.data.startswith("con_value_"))
 async def con_input_value(callback: CallbackQuery, state: FSMContext):
     await state.set_state(conversion_state.input_number)  # install state
-    prof = profile.get(callback.from_user.id)
+    prof = profile.get(callback.from_user.id, create=True)
     user_id = callback.from_user.id
     user_obj = await user_req.load(callback.from_user.id)
     user = user_obj.user

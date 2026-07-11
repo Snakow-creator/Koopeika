@@ -113,7 +113,7 @@ async def edit_transaction(callback: CallbackQuery, state: FSMContext):
     await callback.answer("")
 
     if action == "assets":
-        prof = profile.get(callback.from_user.id)
+        prof = profile.get(callback.from_user.id, create=True)
         prof.tr_message_id = id
         await callback.message.edit_text(
             f"Напишите актуальную сумму своих активов/убытков для транзакции {id}:"

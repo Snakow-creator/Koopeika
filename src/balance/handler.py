@@ -21,7 +21,7 @@ async def balance_handler(callback: CallbackQuery):
     value = conf.values_symbols[style].get(value, f" {value}")
 
     # update profile
-    prof = profile.get(user_id)
+    prof = profile.get(user_id, create=True)
     prof.assets_balance = con.assets_balance
     prof.assets_share = con.assets_share
 

@@ -36,9 +36,7 @@ async def transaction_edit(message: Message, state: FSMContext):
         # edit transaction
         amount = int(message.text)
 
-        log.debug("False")
         await transaction.edit(value=amount, num_id=tr_id)
-        log.debug("True")
         await message.answer("Транзакция успешно изменена!", reply_markup=main_menu)
         log.debug(f"Edit transaction {message.from_user.id}")
 

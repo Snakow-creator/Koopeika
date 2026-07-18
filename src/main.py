@@ -36,7 +36,7 @@ async def main():
         await scheduler.start_in_background()
         await scheduler.add_schedule(const_rates, CronTrigger(hour=0, minute=0), id="const_rates")
         await scheduler.add_schedule(dinamic_cryptorates, IntervalTrigger(minutes=5), id="dinamic_cryptorates")
-        await scheduler.add_schedule(profile_cleaner, IntervalTrigger(seconds=10), id="profile_cleaner")
+        await scheduler.add_schedule(profile_cleaner, IntervalTrigger(minutes=10), id="profile_cleaner")
 
         # start services
         start_logging() # init logger

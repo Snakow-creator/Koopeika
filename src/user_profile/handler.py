@@ -29,7 +29,8 @@ async def value_handler(callback: CallbackQuery):
     user_obj = await user_req.load(user_id)
     premium_user = await user_obj.premium()
     # change choise for assets handler
-    profile.get(user_id).choise = "edit"
+    prof =  profile.get(user_id, create=True)
+    prof.choise = "edit"
 
     if premium_user:
         keyboard = con.popular_values(premium_user)

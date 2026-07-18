@@ -7,7 +7,7 @@ from payments.request import Payments as payments_req
 from settings import edit_req
 
 from keyboards import pay
-from middlewares.logger import log
+from tasks.logger import log
 
 
 

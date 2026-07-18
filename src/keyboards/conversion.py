@@ -2,7 +2,7 @@ from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from config import conf
-from middlewares.logger import log
+from tasks.logger import log
 
 
 # class for convertation and assets buttons

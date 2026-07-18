@@ -3,7 +3,7 @@ import requests
 import xml.etree.ElementTree as ES
 
 from config.secret import NBK_API
-from middlewares.logger import log
+from tasks.logger import log
 
 
 # country values

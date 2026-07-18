@@ -4,7 +4,7 @@ from config import conf, profile
 from users import user_req
 
 from conversion import conv_balance
-from middlewares.logger import log
+from tasks.logger import log
 from keyboards import dinamic_assets
 
 
@@ -21,7 +21,7 @@ async def balance_handler(callback: CallbackQuery):
     value = conf.values_symbols[style].get(value, f" {value}")
 
     # update profile
-    prof = profile.get(user_id)
+    prof = profile.get(user_id, create=True)
     prof.assets_balance = con.assets_balance
     prof.assets_share = con.assets_share
 

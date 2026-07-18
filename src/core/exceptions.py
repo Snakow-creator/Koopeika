@@ -41,3 +41,9 @@ class PageError(BaseException):
     def __init__(self):
         message = "Такой страницы не существует."
         super().__init__(message)
+
+
+class ProfileExpiredError(BaseException):
+    def __init__(self):
+        message = "Похоже, вы давно не пользовались ботом, перейдите в главное меню, чтобы начать заново."
+        super().__init__(message)

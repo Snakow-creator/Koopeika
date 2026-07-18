@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 from core.request import connect
 from users import user_req
 
-from middlewares.logger import log
+from tasks.logger import log
 
 
 # operation static class with user

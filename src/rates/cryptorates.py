@@ -1,6 +1,6 @@
 from config.secret import CRYPTO_API, CRYPTO_TOP_API, static_cryptolist
 
-from middlewares.logger import log
+from tasks.logger import log
 
 import requests
 import aiohttp

@@ -4,9 +4,6 @@ services:
     container_name: koopeika_container
 
     working_dir: /src
-    
-    env_file:
-      - .env
 
     command: "python main.py"
 

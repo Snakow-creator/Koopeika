@@ -1,6 +1,6 @@
 from aiogram import Router
 
-from middlewares.logger import log
+from tasks.logger import log
 
 from base.message import router as base_handler_router
 from base.callback import router as base_callback_router

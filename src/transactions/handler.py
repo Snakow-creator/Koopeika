@@ -1,8 +1,9 @@
 from aiogram.types import CallbackQuery
 
 from transactions import transaction_req, list_transactions
+from config import profile
 
-from middlewares.logger import log
+from tasks.logger import log
 from keyboards import trx, main_menu
 
 
@@ -28,3 +29,18 @@ async def transactions_handler(callback: CallbackQuery):
         await callback.message.edit_text(tx, reply_markup=trx.transactions_paginator(callback, pages=False))
 
     log.debug(f"Check history transactions {callback.from_user.id}")
+
+
+async def edit_transactions_handler(callback: CallbackQuery):
+    user_id = callback.from_user.id
+    prof = profile.get(user_id)
+    transactions = prof.transactions
+    buttons_trs = await transactions.load_edit_kb()
+    # set page 1
+    prof.trs_edit_page = 1
+    page = 1
+
+    await callback.message.edit_text(
+        "Выберите транзакцию:",
+        reply_markup=trx.input_transaction(buttons_trs, page),
+    )

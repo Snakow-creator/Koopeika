@@ -8,7 +8,7 @@ from transactions import transaction_req
 
 from keyboards import con, seg
 from base.keyboard import main_menu
-from middlewares.logger import log
+from tasks.logger import log
 from states import balance_state
 from core.exceptions import ManyTransactionsError
 
@@ -27,7 +27,7 @@ async def add_assets(callback: CallbackQuery):
 
     user_obj = await user_req.load(callback.from_user.id)
     premium = await user_obj.premium()
-    prof = profile.get(callback.from_user.id)
+    prof = profile.get(callback.from_user.id, create=True)
     prof.choise = action
     prof.text = "Укажите <b>валюту</b>:"
     await callback.message.edit_text(

@@ -9,7 +9,7 @@ from config import profile
 from states import balance_state
 from keyboards import assets
 from base.keyboard import main_menu
-from middlewares.logger import log
+from tasks.logger import log
 from core.exceptions import (
     BadMessageText,
     BigNumError,

@@ -1,4 +1,5 @@
 from aiogram import BaseMiddleware
+from aiogram.types import Message
 
 from core.exceptions import ProfileExpiredError
 from keyboards import main_menu
@@ -22,10 +23,22 @@ class ProfileExpiredMiddleware(BaseMiddleware):
 
             try:
                 if hasattr(event, "callback_query") and event.callback_query:
+                    log.debug(f"Edit expired callback query message for user {event.callback_query.from_user.id}")
                     await event.callback_query.message.edit_text(text, reply_markup=main_menu)
                     await event.callback_query.answer()
-                elif hasattr(event, "message") and event.message:
-                    await event.message.answer(text, reply_markup=main_menu)
+                elif isinstance(event, Message):          # ← главное изменение
+                    # Обычное сообщение
+                    log.info(f"Edit expired message for user {event.chat.id}")
+                    await event.answer(text, reply_markup=main_menu)
+                else:
+                    log.warning(f"Неизвестный тип event: {type(event)}")
+                    # Fallback через bot
+                    if hasattr(event, "bot") and hasattr(event, "chat"):
+                        await event.bot.send_message(
+                            chat_id=event.chat.id,
+                            text=text,
+                            reply_markup=main_menu
+                        )
             except Exception as send_err:
                 log.error(f"Failed to send expired profile message: {send_err}")
 

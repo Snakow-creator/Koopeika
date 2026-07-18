@@ -3,7 +3,7 @@ from aiogram.types import Message
 from aiogram.fsm.context import FSMContext
 
 from config import conf, profile
-from core.exceptions import BadMessageText, ValueNotFoundError
+from core.exceptions import BadMessageText, ValueNotFoundError, BigNumError
 from users import user_req
 
 from keyboards import con, main_menu
@@ -85,6 +85,9 @@ async def con_input_second_number(message: Message, state: FSMContext):
             reply_markup=keyboard,
         )
     except BadMessageText as ex:
+        await message.answer(f"{ex}", reply_markup=main_menu)
+
+    except BigNumError as ex:
         await message.answer(f"{ex}", reply_markup=main_menu)
 
     finally:

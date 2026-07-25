@@ -10,6 +10,7 @@ from keyboards import con, main_menu
 from states import conversion_state
 from conversion.converter import Conversion
 from tasks.logger import log
+from tasks.handler_nums import str_num_to_float
 
 from utils import (checker_value, int_or_float, delete_message,
                    choise_value, checker_num)
@@ -75,8 +76,9 @@ async def con_input_second_number(message: Message, state: FSMContext):
             keyboard = con.popular_values(premium_user, "endcon")
 
         await checker_num(message.text, value, premium_user)
+
         # after checker
-        amount = await int_or_float(message.text)
+        amount = str_num_to_float(message.text)
         prof.amount = amount
 
         await message.answer(

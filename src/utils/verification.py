@@ -2,6 +2,7 @@ from core.exceptions import BadMessageText, BadUserIdError, BigNumError, ValueNo
 from config import conf
 
 from tasks.logger import log
+from tasks.handler_nums import str_num_to_float
 
 
 def checker_id(id: int, user_transactions):
@@ -33,7 +34,7 @@ async def checker_num(num: str, value: str, premium_user, con_type: bool = False
 
         if premium_user:
             max_num = conf.max_num_values_premium.get(value, max_limit*1_000)
-        if float(num) > max_num:
+        if str_num_to_float(num) > max_num:
             raise BigNumError()
 
     except ValueError:  # if float raise ValueError

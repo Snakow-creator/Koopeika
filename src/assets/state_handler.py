@@ -10,6 +10,7 @@ from states import balance_state
 from keyboards import assets
 from base.keyboard import main_menu
 from tasks.logger import log
+from tasks.handler_nums import handler_num
 from core.exceptions import (
     BadMessageText,
     BigNumError,
@@ -63,12 +64,14 @@ async def add_assets(message: Message, state: FSMContext):
         # check num is correct in limits
         await checker_num(message.text, prof.value, premium_user)
 
+        amount = handler_num(message.text)
+
         op = {
             "change": "+",
             "deprive": "-",
         }
         chs = prof.choise
-        prof.choise = op[chs] + message.text
+        prof.choise = op[chs] + str(amount)
         log.debug(f"assets: {chs}, {prof.choise}")
 
         await state.set_state(balance_state.assets_end)

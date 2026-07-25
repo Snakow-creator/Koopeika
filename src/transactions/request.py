@@ -98,7 +98,7 @@ class Transactions(Users):
 
     async def delete(self, num_id: int, tg_id: int):
         # check exists user taransaction
-        await checker_id(num_id, self.transactions)
+        checker_id(num_id, self.transactions)
         conn = await connect()
         await conn.execute(
         """

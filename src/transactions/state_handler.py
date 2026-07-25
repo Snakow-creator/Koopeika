@@ -7,6 +7,7 @@ from core.exceptions import BadUserIdError, BadMessageText, BigNumError
 from users import user_req
 from transactions import transaction_req
 from config import profile
+from tasks.handler_nums import str_num_to_float
 
 from utils import checker_num, checker_id
 from tasks.logger import log
@@ -30,11 +31,11 @@ async def transaction_edit(message: Message, state: FSMContext):
         tr_id = prof.tr_message_id # get transaction id
         transaction = await transaction_req.load(message.from_user.id)
 
+
         # check data
         await checker_num(message.text, user["value"], premium_user)
-
         # edit transaction
-        amount = int(message.text)
+        amount = str_num_to_float(message.text)
 
         await transaction.edit(value=amount, num_id=tr_id)
         await message.answer("Транзакция успешно изменена!", reply_markup=main_menu)

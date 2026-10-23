@@ -188,10 +188,11 @@ class Convert_Balance(Conversion):
             else:
                 assets_convert[asset] = amount
 
-         # get transactions and check their
+        # Ensure a first-time user exists before loading their transactions.
+        user_obj = await user_req.load(tg_id)
         trs_obj = await transaction_req.load(tg_id)
         trs = trs_obj.transactions
-        to_value = trs_obj.user["value"] # default user value
+        to_value = user_obj.user["value"] # default user value
 
         for tr in trs:
             op = tr["amount"][0]
@@ -224,6 +225,9 @@ class Convert_Balance(Conversion):
 
     @staticmethod
     async def _get_assets_share(assets_balance: dict, balance: int) -> dict:
+        if balance == 0:
+            return {asset: "0.00" for asset in assets_balance}
+
         assets_share = {}
         one_p = balance / 100
         one_p = Decimal(f"{one_p}")
